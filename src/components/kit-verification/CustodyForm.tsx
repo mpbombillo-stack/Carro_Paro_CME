@@ -93,8 +93,8 @@ export const CustodyForm: React.FC<Props> = ({ custody, onUpdate }) => {
                 <div className="p-6 bg-red-50 dark:bg-red-900/10 border-2 border-red-200 dark:border-red-900/30 rounded-2xl animate-in zoom-in-95 duration-200">
                     <label className="text-xs font-black text-red-700 dark:text-red-400 uppercase tracking-widest block mb-3">Observación de Ruptura (Obligatorio)</label>
                     <textarea
-                        name="observacion_ruptura"
-                        value={custody.observacion_ruptura}
+                        name="observacion_discrepancia"
+                        value={custody.observacion_discrepancia || ''}
                         onChange={handleChange}
                         rows={3}
                         className="w-full p-4 bg-white dark:bg-slate-900 border-none rounded-xl text-sm italic text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-red-500 shadow-sm"

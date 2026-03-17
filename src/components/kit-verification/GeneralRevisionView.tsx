@@ -1,4 +1,4 @@
-import { DashboardLayout } from '../layout/DashboardLayout';
+import { Plus, Download, AlertTriangle, ChevronRight, Tag, MapPin, Calendar, Filter, LayoutGrid, ChevronLeft } from 'lucide-react';
 
 interface GeneralRevisionViewProps {
     onNavigateToDetail: () => void;
@@ -14,138 +14,143 @@ export function GeneralRevisionView({ onNavigateToDetail }: GeneralRevisionViewP
         { desc: 'Gluconato de Calcio 10%', sub: 'Ampolla x 10ml', conc: '100 mg/ml', cant: '5', lote: 'GC-22-X4', vto: '2024-09-22', rs: 'INVIMA 2019M-0019', rsVto: '2029-01-05', estado: 'Óptimo', color: 'green' }
     ];
 
-    const NewInspectionButton = (
-        <button onClick={onNavigateToDetail} className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-all">
-            <span className="material-symbols-outlined text-sm">add</span>
-            <span>Nueva Inspección</span>
-        </button>
-    );
-
     return (
-        <DashboardLayout headerActions={NewInspectionButton}>
+        <div className="animate-in fade-in duration-500 space-y-8">
             {/* Breadcrumbs & Title */}
-            <div className="mb-8">
-                <nav className="flex text-sm text-slate-500 mb-2 items-center gap-2">
-                    <a href="#" className="hover:text-primary transition-colors">Gestión de Carros</a>
-                    <span className="material-symbols-outlined text-xs">chevron_right</span>
-                    <span className="text-slate-900 dark:text-slate-100 font-medium">Carro de Paro CP-082</span>
+            <div className="space-y-6">
+                <nav className="flex text-[10px] font-black uppercase tracking-widest text-slate-400 items-center gap-2">
+                    <span className="hover:text-primary transition-colors cursor-pointer">Gestión de Carros</span>
+                    <ChevronRight size={12} className="text-slate-300" />
+                    <span className="text-slate-900 dark:text-slate-100 italic">Carro de Paro CP-082</span>
                 </nav>
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div>
-                        <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-slate-100">Revisión de Carro de Paro</h1>
-                        <p className="text-slate-500 mt-1 flex items-center gap-4">
-                            <span className="flex items-center gap-1.5"><span className="material-symbols-outlined text-sm">tag</span> ID: CP-082</span>
-                            <span className="flex items-center gap-1.5"><span className="material-symbols-outlined text-sm">location_on</span> Sala de Urgencias</span>
-                            <span className="flex items-center gap-1.5"><span className="material-symbols-outlined text-sm">calendar_month</span> Última revisión: 25 Oct 2023</span>
-                        </p>
+                        <h1 className="text-4xl font-black tracking-tighter text-slate-900 dark:text-white">Revisión de Carro de Paro</h1>
+                        <div className="mt-4 flex flex-wrap items-center gap-6 text-slate-500">
+                            <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-tight"><Tag size={14} className="text-primary" /> ID: CP-082</span>
+                            <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-tight"><MapPin size={14} className="text-primary" /> Sala de Urgencias</span>
+                            <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-tight"><Calendar size={14} className="text-primary" /> Última: 25 Oct 2023</span>
+                        </div>
                     </div>
-                    <div className="flex gap-2">
-                        <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-colors shadow-sm">
-                            <span className="material-symbols-outlined text-lg">download</span>
-                            Exportar
+                    <div className="flex gap-3">
+                         <button 
+                            onClick={onNavigateToDetail} 
+                            className="flex items-center gap-2 px-8 py-3 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:shadow-xl hover:shadow-primary/20 transition-all active:scale-[0.98]"
+                            title="Empezar nueva inspección"
+                        >
+                            <Plus size={18} />
+                            <span>Nueva Inspección</span>
                         </button>
-                        <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-colors shadow-sm text-red-600">
-                            <span className="material-symbols-outlined text-lg">report</span>
-                            Reportar Incidencia
+                        <button 
+                            className="flex items-center justify-center size-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-500 hover:text-primary transition-all shadow-sm"
+                            title="Exportar listado"
+                        >
+                            <Download size={20} />
+                        </button>
+                        <button 
+                            className="flex items-center justify-center size-12 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-2xl text-red-500 hover:bg-red-100 transition-all"
+                            title="Reportar incidencia"
+                        >
+                            <AlertTriangle size={20} />
                         </button>
                     </div>
                 </div>
             </div>
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                    <p className="text-slate-500 text-sm font-medium">Total de Artículos</p>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="bg-white dark:bg-slate-900 p-8 rounded-[32px] border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/40 dark:shadow-none">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Artículos</p>
                     <div className="flex items-baseline gap-2 mt-2">
-                        <span className="text-3xl font-black text-slate-900 dark:text-slate-100">142</span>
-                        <span className="text-xs font-bold text-slate-400">Total</span>
+                        <span className="text-4xl font-black text-slate-800 dark:text-white">142</span>
+                        <span className="text-xs font-bold text-slate-400">Items registrados</span>
                     </div>
                 </div>
-                <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm border-l-4 border-l-yellow-500">
-                    <p className="text-slate-500 text-sm font-medium">Próximos a Vencer</p>
+                <div className="bg-white dark:bg-slate-900 p-8 rounded-[32px] border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/40 dark:shadow-none relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-yellow-500" />
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Próximos a Vencer</p>
                     <div className="flex items-baseline gap-2 mt-2">
-                        <span className="text-3xl font-black text-yellow-600 dark:text-yellow-500">8</span>
-                        <span className="text-xs font-bold text-yellow-600/70">&lt; 30 días</span>
+                        <span className="text-4xl font-black text-yellow-600">8</span>
+                        <span className="text-xs font-extrabold text-yellow-600/70 tracking-tight uppercase">Menos de 30 días</span>
                     </div>
                 </div>
-                <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm border-l-4 border-l-red-500">
-                    <p className="text-slate-500 text-sm font-medium">Vencidos / Caducos</p>
+                <div className="bg-white dark:bg-slate-900 p-8 rounded-[32px] border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/40 dark:shadow-none relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-red-500" />
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Vencidos / Caducos</p>
                     <div className="flex items-baseline gap-2 mt-2">
-                        <span className="text-3xl font-black text-red-600 dark:text-red-500">2</span>
-                        <span className="text-xs font-bold text-red-600/70">Urgente</span>
+                        <span className="text-4xl font-black text-red-600">2</span>
+                        <span className="text-xs font-extrabold text-red-600/70 tracking-tight uppercase">Inmediato</span>
                     </div>
                 </div>
-                <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm border-l-4 border-l-primary">
-                    <p className="text-slate-500 text-sm font-medium">Registro Sanitario Vencido</p>
+                <div className="bg-white dark:bg-slate-900 p-8 rounded-[32px] border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/40 dark:shadow-none relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-primary" />
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Registro Invalido</p>
                     <div className="flex items-baseline gap-2 mt-2">
-                        <span className="text-3xl font-black text-primary">3</span>
-                        <span className="text-xs font-bold text-primary/70">Actualizar</span>
+                        <span className="text-4xl font-black text-primary">3</span>
+                        <span className="text-xs font-extrabold text-primary/70 tracking-tight uppercase">Renovación</span>
                     </div>
                 </div>
             </div>
 
             {/* Table Container */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-                <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50">
-                    <h3 className="font-bold text-slate-900 dark:text-slate-100">Listado de Medicamentos e Insumos</h3>
+            <div className="bg-white dark:bg-slate-900 rounded-[40px] border border-slate-100 dark:border-slate-800 shadow-2xl shadow-slate-200/50 dark:shadow-none overflow-hidden">
+                <div className="p-8 border-b border-slate-50 dark:border-slate-800 flex justify-between items-center bg-slate-50/[0.3] dark:bg-slate-800/20">
+                    <h3 className="text-lg font-black text-slate-800 dark:text-white tracking-tight">Listado de Medicamentos e Insumos</h3>
                     <div className="flex gap-2">
-                        <button className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors">
-                            <span className="material-symbols-outlined text-slate-500">filter_list</span>
+                        <button title="Filtrar" className="p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl text-slate-400 hover:text-primary transition-all shadow-sm">
+                            <Filter size={18} />
                         </button>
-                        <button className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors">
-                            <span className="material-symbols-outlined text-slate-500">view_column</span>
+                        <button title="Configurar Columnas" className="p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl text-slate-400 hover:text-primary transition-all shadow-sm">
+                            <LayoutGrid size={18} />
                         </button>
                     </div>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-slate-50 dark:bg-slate-800/30 text-slate-500 text-xs font-bold uppercase tracking-wider">
-                                <th className="px-6 py-4">Descripción / Producto</th>
-                                <th className="px-6 py-4">Concentración</th>
-                                <th className="px-6 py-4">Cant.</th>
-                                <th className="px-6 py-4">Lote</th>
-                                <th className="px-6 py-4">Vencimiento</th>
-                                <th className="px-6 py-4">Registro Sanitario</th>
-                                <th className="px-6 py-4">Vigencia RS</th>
-                                <th className="px-6 py-4">Estado</th>
+                            <tr className="bg-slate-50/50 dark:bg-slate-800/40 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">
+                                <th className="px-8 py-5">Producto</th>
+                                <th className="px-6 py-5">Conc.</th>
+                                <th className="px-6 py-5 text-center">Cant.</th>
+                                <th className="px-6 py-5">Lote</th>
+                                <th className="px-6 py-5">Vencimiento</th>
+                                <th className="px-6 py-5">Registro Sanitario</th>
+                                <th className="px-8 py-5">Estado</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
                             {listItems.map((item, i) => (
-                                <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                    <td className="px-6 py-4">
-                                        <p className="font-bold text-slate-900 dark:text-slate-100 text-sm">{item.desc}</p>
-                                        <p className="text-xs text-slate-500">{item.sub}</p>
+                                <tr key={i} className="hover:bg-slate-50/[0.5] dark:hover:bg-slate-800/30 transition-colors group">
+                                    <td className="px-8 py-6">
+                                        <p className="font-black text-slate-800 dark:text-slate-100 text-sm">{item.desc}</p>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase mt-0.5">{item.sub}</p>
                                     </td>
-                                    <td className="px-6 py-4 text-sm">{item.conc}</td>
-                                    <td className="px-6 py-4 text-sm font-medium">{item.cant}</td>
-                                    <td className="px-6 py-4 text-sm font-mono">{item.lote}</td>
-                                    <td className="px-6 py-4 text-sm">
-                                        <span className={`${
-                                            item.color === 'red' ? 'text-red-600 font-bold bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded' :
-                                            item.color === 'yellow' ? 'text-yellow-600 font-bold bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1 rounded' :
+                                    <td className="px-6 py-6 text-sm font-bold text-slate-600 dark:text-slate-400">{item.conc}</td>
+                                    <td className="px-6 py-6 text-center text-sm font-black text-slate-800 dark:text-slate-100">{item.cant}</td>
+                                    <td className="px-6 py-6 text-sm font-mono font-bold text-slate-400">{item.lote}</td>
+                                    <td className="px-6 py-6 text-sm">
+                                        <span className={`px-2 py-1 rounded-lg text-[11px] font-black ${
+                                            item.color === 'red' ? 'text-red-600 bg-red-50' :
+                                            item.color === 'yellow' ? 'text-yellow-600 bg-yellow-50' :
                                             'text-slate-600 dark:text-slate-400'
                                         }`}>{item.vto}</span>
                                     </td>
-                                    <td className="px-6 py-4 text-sm">{item.rs}</td>
-                                    <td className="px-6 py-4 text-sm">
-                                        <span className={`${
-                                            item.color === 'primary' ? 'text-primary font-bold bg-primary/10 px-2 py-1 rounded' : ''
-                                        }`}>{item.rsVto}</span>
+                                    <td className="px-6 py-6">
+                                        <p className="text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase">{item.rs}</p>
+                                        <p className={`text-[9px] font-bold mt-0.5 ${item.color === 'primary' ? 'text-primary' : 'text-slate-400'}`}>Exp: {item.rsVto}</p>
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                                            item.color === 'red' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' :
-                                            item.color === 'yellow' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' :
-                                            item.color === 'primary' ? 'bg-primary/10 text-primary' :
-                                            'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                                    <td className="px-8 py-6">
+                                        <span className={`inline-flex items-center gap-2 text-[10px] font-black uppercase px-3 py-1.5 rounded-full ${
+                                            item.color === 'red' ? 'bg-red-50 text-red-600 ring-1 ring-red-100' :
+                                            item.color === 'yellow' ? 'bg-yellow-50 text-yellow-600 ring-1 ring-yellow-100' :
+                                            item.color === 'primary' ? 'bg-blue-50 text-primary ring-1 ring-blue-100' :
+                                            'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100'
                                         }`}>
                                             <span className={`size-1.5 rounded-full ${
                                                 item.color === 'red' ? 'bg-red-500 animate-pulse' :
                                                 item.color === 'yellow' ? 'bg-yellow-500' :
                                                 item.color === 'primary' ? 'bg-primary' :
-                                                'bg-green-500'
+                                                'bg-emerald-500'
                                             }`}></span> {item.estado}
                                         </span>
                                     </td>
@@ -154,43 +159,22 @@ export function GeneralRevisionView({ onNavigateToDetail }: GeneralRevisionViewP
                         </tbody>
                     </table>
                 </div>
-                <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/30 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                    <p className="text-sm text-slate-500">Mostrando <span className="font-bold text-slate-900 dark:text-slate-100">1-6</span> de <span className="font-bold text-slate-900 dark:text-slate-100">142</span> artículos</p>
-                    <div className="flex gap-1">
-                        <button className="size-8 flex items-center justify-center rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 hover:text-primary hover:border-primary transition-all">
-                            <span className="material-symbols-outlined text-sm">chevron_left</span>
+                <div className="px-8 py-6 bg-slate-50/50 dark:bg-slate-800/30 border-t border-slate-50 dark:border-slate-800 flex items-center justify-between">
+                    <p className="text-xs font-bold text-slate-400">Mostrando <span className="font-black text-slate-900 dark:text-white">1-6</span> de 142 artículos</p>
+                    <div className="flex gap-2">
+                        <button title="Página anterior" className="size-10 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-400 hover:text-primary transition-all shadow-sm">
+                            <ChevronLeft size={18} />
                         </button>
-                        <button className="size-8 flex items-center justify-center rounded border border-primary bg-primary text-white font-bold text-sm">1</button>
-                        <button className="size-8 flex items-center justify-center rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 hover:text-primary hover:border-primary transition-all text-sm">2</button>
-                        <button className="size-8 flex items-center justify-center rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 hover:text-primary hover:border-primary transition-all text-sm">3</button>
-                        <span className="px-1 text-slate-400">...</span>
-                        <button className="size-8 flex items-center justify-center rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 hover:text-primary hover:border-primary transition-all text-sm">24</button>
-                        <button className="size-8 flex items-center justify-center rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 hover:text-primary hover:border-primary transition-all">
-                            <span className="material-symbols-outlined text-sm">chevron_right</span>
+                        {[1, 2, 3].map(p => (
+                            <button key={p} title={`Ir a página ${p}`} className={`size-10 flex items-center justify-center rounded-xl font-black text-xs transition-all ${p === 1 ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-400 hover:border-primary hover:text-primary'}`}>{p}</button>
+                        ))}
+                        <button title="Siguiente página" className="size-10 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-400 hover:text-primary transition-all shadow-sm">
+                            <ChevronRight size={18} />
                         </button>
                     </div>
                 </div>
             </div>
-
-            {/* Footer / Status Explanation */}
-            <div className="mt-8 flex flex-wrap gap-8 p-6 bg-slate-100 dark:bg-slate-900/50 rounded-xl text-xs text-slate-500">
-                <div className="flex items-center gap-2">
-                    <span className="size-2 bg-red-500 rounded-full"></span>
-                    <span className="font-bold uppercase tracking-tighter">Vencido:</span> Retiro inmediato y reemplazo.
-                </div>
-                <div className="flex items-center gap-2">
-                    <span className="size-2 bg-yellow-500 rounded-full"></span>
-                    <span className="font-bold uppercase tracking-tighter">Próximo:</span> Vigencia menor a 30 días calendario.
-                </div>
-                <div className="flex items-center gap-2">
-                    <span className="size-2 bg-primary rounded-full"></span>
-                    <span className="font-bold uppercase tracking-tighter">RS Vencido:</span> Registro Sanitario requiere renovación legal.
-                </div>
-                <div className="flex items-center gap-2">
-                    <span className="size-2 bg-green-500 rounded-full"></span>
-                    <span className="font-bold uppercase tracking-tighter">Óptimo:</span> Producto vigente y seguro para uso.
-                </div>
-            </div>
-        </DashboardLayout>
+        </div>
     );
 }
+

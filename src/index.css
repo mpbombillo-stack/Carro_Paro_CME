@@ -30,3 +30,11 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
   filter: invert(0.4) sepia(1) saturate(5) hue-rotate(175deg);
 }
+
+.dynamic-width {
+  width: var(--tw-dynamic-width, 0%);
+}
+
+.dynamic-height {
+  height: var(--tw-dynamic-height, 0%);
+}

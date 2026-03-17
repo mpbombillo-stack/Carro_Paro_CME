@@ -1,41 +1,61 @@
 export type AuditStatus = 'ROJO' | 'AMARILLO' | 'VERDE';
 
-export type AuditHeader = {
+export interface AuditHeader {
     id: string;
     fecha_hora_inicio: string;
-    fecha_hora_cierre?: string;
     servicio_ubicacion: string;
     id_carro: string;
     responsable_usuario: string;
-};
+}
 
-export type AuditDetail = {
+export interface AuditDetail {
     id: string;
     audit_header_id: string;
-    descripcion: string; // Principio Activo + Concentración + Forma Farmacéutica
+    descripcion: string;
     cantidad_fisica: number;
     lote: string;
     fecha_vencimiento_insumo: string;
-    registro_sanitario: string; // 20XXM-XXXXXX
+    registro_sanitario: string;
     vencimiento_registro_sanitario: string;
     estado_conformidad: boolean;
-};
+}
 
-export type MotivoApertura = 'Revisión Rutinaria' | 'Emergencia/Código Azul' | 'Caducidad';
-
-export type AuditCustody = {
+export interface AuditCustody {
     id: string;
     audit_header_id: string;
     serial_apertura: string;
     serial_cierre: string;
-    motivo_apertura: MotivoApertura;
-    firma_farmacia_img?: string; // Base64
-    firma_enfermeria_img?: string; // Base64
-    observacion_ruptura?: string;
-};
+    motivo_apertura: 'Revisión Rutinaria' | 'Emergencia/Código Azul' | 'Caducidad';
+    observacion_discrepancia?: string;
+    firma_farmacia_img?: string;
+    firma_enfermeria_img?: string;
+}
 
 export interface AuditVerificationData {
     header: AuditHeader;
     details: AuditDetail[];
     custody: AuditCustody;
+}
+
+// Master Data Types
+export interface IPSSettings {
+    id: string;
+    name: string;
+    logo_url?: string;
+}
+
+export interface MasterItem {
+    id: string;
+    description: string;
+    presentation?: string;
+    invima_registry: string;
+    invima_expiration?: string;
+    standard_quantity: number;
+    category: string;
+}
+
+export interface MasterCart {
+    id: string;
+    name: string;
+    location: string;
 }
