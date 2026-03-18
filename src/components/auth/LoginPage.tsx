@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { ShieldCheck, User, Lock, ArrowRight, AlertCircle, Building2 } from 'lucide-react';
 import type { MasterUser } from '../../types/audit';
@@ -8,51 +8,56 @@ interface LoginPageProps {
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
-    const [users, setUsers] = useState<MasterUser[]>([]);
-    const [selectedUserId, setSelectedUserId] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-
-    useEffect(() => {
-        fetchUsers();
-    }, []);
-
-    const fetchUsers = async () => {
-        const { data } = await supabase
-            .from('master_users')
-            .select('*')
-            .eq('is_active', true)
-            .order('full_name', { ascending: true });
-        
-        if (data) {
-            setUsers(data);
-        } else {
-            const saved = localStorage.getItem('master_users');
-            if (saved) setUsers(JSON.parse(saved));
-        }
-    };
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
         setLoading(true);
 
-        const user = users.find(u => u.id === selectedUserId);
-        
-        if (!user) {
-            setError('Por favor selecciona un usuario.');
-            setLoading(false);
-            return;
-        }
+        try {
+            // First try to fetch from Supabase
+            const { data, error: sbError } = await supabase
+                .from('master_users')
+                .select('*')
+                .or(`full_name.ilike.%${username}%,full_name.eq.${username}`)
+                .eq('is_active', true)
+                .single();
 
-        // Verify password (in a real app this should be done on the server/Supabase Auth)
-        if (user.password === password) {
-            onLogin(user);
-        } else {
-            setError('PIN incorrecto. Inténtalo de nuevo.');
+            let targetUser: MasterUser | null = data;
+
+            // Fallback to local storage if supabase fails or no user found
+            if (!targetUser) {
+                const saved = localStorage.getItem('master_users');
+                if (saved) {
+                    const localUsers: MasterUser[] = JSON.parse(saved);
+                    targetUser = localUsers.find(u => 
+                        u.full_name.toLowerCase().includes(username.toLowerCase()) && u.is_active
+                    ) || null;
+                }
+            }
+
+            if (!targetUser) {
+                setError('Usuario no encontrado o inactivo.');
+                setLoading(false);
+                return;
+            }
+
+            // Verify password
+            if (targetUser.password === password) {
+                onLogin(targetUser);
+            } else {
+                setError('PIN/Contraseña incorrecta.');
+            }
+        } catch (err) {
+            console.error('Login error:', err);
+            setError('Error de conexión con el sistema.');
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     return (
@@ -77,28 +82,24 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 
                     <form onSubmit={handleLogin} className="space-y-6 relative">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1 ml-1">Seleccionar Usuario</label>
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1 ml-1">Nombre de Usuario</label>
                             <div className="relative group">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
                                     <User size={18} />
                                 </div>
-                                <select
-                                    title="Seleccionar usuario"
-                                    value={selectedUserId}
-                                    onChange={(e) => setSelectedUserId(e.target.value)}
-                                    className="w-full pl-11 pr-4 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-primary/20 focus:bg-white dark:focus:bg-slate-900 rounded-2xl text-slate-700 dark:text-slate-200 font-bold transition-all outline-none appearance-none cursor-pointer"
+                                <input
+                                    type="text"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    className="w-full pl-11 pr-4 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-primary/20 focus:bg-white dark:focus:bg-slate-900 rounded-2xl text-slate-700 dark:text-slate-200 font-bold transition-all outline-none"
+                                    placeholder="Ej: Msuaza"
                                     required
-                                >
-                                    <option value="">Selecciona tu nombre...</option>
-                                    {users.map(u => (
-                                        <option key={u.id} value={u.id}>{u.full_name} ({u.job_title})</option>
-                                    ))}
-                                </select>
+                                />
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1 ml-1">Ingresar PIN</label>
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1 ml-1"> PIN / Contraseña</label>
                             <div className="relative group">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
                                     <Lock size={18} />
@@ -108,7 +109,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     className="w-full pl-11 pr-4 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-primary/20 focus:bg-white dark:focus:bg-slate-900 rounded-2xl text-slate-700 dark:text-slate-200 font-bold transition-all outline-none"
-                                    placeholder="••••"
+                                    placeholder="••••••••"
                                     required
                                 />
                             </div>
@@ -123,7 +124,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 
                         <button
                             type="submit"
-                            disabled={loading || !selectedUserId}
+                            disabled={loading || !username}
                             className="w-full bg-slate-900 dark:bg-primary hover:bg-black dark:hover:bg-primary-dark text-white font-black py-5 rounded-2xl shadow-xl shadow-slate-200 dark:shadow-primary/20 transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed group"
                         >
                             {loading ? 'VERIFICANDO...' : 'INGRESAR AL SISTEMA'}
@@ -143,9 +144,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                     <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">
                         Sistema de Control Farmacéutico Institucional
                     </p>
-                    <div className="flex justify-center gap-6 opacity-30 grayscale hover:grayscale-0 transition-all duration-500">
-                        {/* Institutional logos could go here */}
-                    </div>
                 </div>
             </div>
         </div>
