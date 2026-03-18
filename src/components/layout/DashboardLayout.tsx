@@ -8,8 +8,7 @@ import {
     Settings, 
     Bell, 
     Search,
-    ShieldCheck,
-    LogOut
+    ShieldCheck
 } from 'lucide-react';
 import type { MasterUser } from '../../types/audit';
 
@@ -21,10 +20,9 @@ interface DashboardLayoutProps {
     activeTab: DashboardTab;
     onTabChange: (tab: DashboardTab) => void;
     user: MasterUser;
-    onLogout: () => void;
 }
 
-export function DashboardLayout({ children, headerActions, activeTab, onTabChange, user, onLogout }: DashboardLayoutProps) {
+export function DashboardLayout({ children, headerActions, activeTab, onTabChange, user }: DashboardLayoutProps) {
     const navItems = [
         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, section: 'Gestión' },
         { id: 'carros', label: 'Carros de Paro', icon: Truck, section: 'Gestión' },
@@ -96,13 +94,6 @@ export function DashboardLayout({ children, headerActions, activeTab, onTabChang
                                 <p className="text-sm font-black text-slate-800 dark:text-white truncate">{user.full_name}</p>
                                 <p className="text-[10px] font-bold text-primary uppercase tracking-tighter truncate">{user.job_title}</p>
                             </div>
-                            <button 
-                                onClick={onLogout}
-                                title="Cerrar Sesión"
-                                className="p-2 text-slate-400 hover:text-red-500 hover:bg-white dark:hover:bg-slate-700 rounded-xl transition-all"
-                            >
-                                <LogOut size={18} />
-                            </button>
                         </div>
                     </div>
                 </div>
