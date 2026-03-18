@@ -64,6 +64,7 @@ export interface MasterUser {
     id: string;
     full_name: string;
     job_title: string;
+    password?: string;
     profile: 'Administrador' | 'Auditor/Farmacia' | 'Enfermería';
     is_active?: boolean;
 }

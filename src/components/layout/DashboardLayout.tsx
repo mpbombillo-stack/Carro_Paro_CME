@@ -8,8 +8,10 @@ import {
     Settings, 
     Bell, 
     Search,
-    Stethoscope
+    ShieldCheck,
+    LogOut
 } from 'lucide-react';
+import type { MasterUser } from '../../types/audit';
 
 export type DashboardTab = 'dashboard' | 'carros' | 'inventario' | 'reportes' | 'auditorias' | 'config';
 
@@ -18,9 +20,11 @@ interface DashboardLayoutProps {
     headerActions?: ReactNode;
     activeTab: DashboardTab;
     onTabChange: (tab: DashboardTab) => void;
+    user: MasterUser;
+    onLogout: () => void;
 }
 
-export function DashboardLayout({ children, headerActions, activeTab, onTabChange }: DashboardLayoutProps) {
+export function DashboardLayout({ children, headerActions, activeTab, onTabChange, user, onLogout }: DashboardLayoutProps) {
     const navItems = [
         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, section: 'Gestión' },
         { id: 'carros', label: 'Carros de Paro', icon: Truck, section: 'Gestión' },
@@ -38,11 +42,13 @@ export function DashboardLayout({ children, headerActions, activeTab, onTabChang
             <aside className="w-72 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col shrink-0 sticky top-0 h-screen z-20">
                 <div className="p-8 pb-6 flex items-center gap-3 text-primary">
                     <div className="size-10 bg-primary/10 rounded-xl flex items-center justify-center">
-                        <Stethoscope className="size-6 font-bold" />
+                        <ShieldCheck className="size-6 font-bold" />
                     </div>
                     <div className="flex flex-col">
-                        <span className="font-black text-xl leading-none tracking-tight">HospTrack</span>
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mt-1">PRO Management</span>
+                        <span className="font-black text-xl leading-none tracking-tight italic">
+                            VerifiCa-<span className="text-slate-800 dark:text-white not-italic">RX</span>
+                        </span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mt-1">Safe Management</span>
                     </div>
                 </div>
 
@@ -81,16 +87,22 @@ export function DashboardLayout({ children, headerActions, activeTab, onTabChang
                 </nav>
 
                 <div className="p-4 pt-0 space-y-2">
-                    
-                    <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-3xl mt-4 border border-slate-100 dark:border-white/5">
+                    <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-3xl mt-4 border border-slate-100 dark:border-white/5 group relative">
                         <div className="flex items-center gap-3">
-                            <div className="size-10 rounded-2xl bg-primary text-white flex items-center justify-center font-black shadow-lg shadow-primary/20">
-                                AD
+                            <div className="size-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black shadow-lg shadow-slate-900/20 uppercase">
+                                {user.full_name.charAt(0)}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm font-black text-slate-800 dark:text-white truncate">Administrador</p>
-                                <p className="text-[10px] font-bold text-primary uppercase tracking-tighter">Control de Calidad</p>
+                                <p className="text-sm font-black text-slate-800 dark:text-white truncate">{user.full_name}</p>
+                                <p className="text-[10px] font-bold text-primary uppercase tracking-tighter truncate">{user.job_title}</p>
                             </div>
+                            <button 
+                                onClick={onLogout}
+                                title="Cerrar Sesión"
+                                className="p-2 text-slate-400 hover:text-red-500 hover:bg-white dark:hover:bg-slate-700 rounded-xl transition-all"
+                            >
+                                <LogOut size={18} />
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -128,4 +140,3 @@ export function DashboardLayout({ children, headerActions, activeTab, onTabChang
         </div>
     );
 }
-

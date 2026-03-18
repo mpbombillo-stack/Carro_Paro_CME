@@ -101,7 +101,8 @@ export const ConfigurationModule: React.FC = () => {
                 full_name: editingUser ? editingUser.full_name : newUser.full_name,
                 job_title: editingUser ? editingUser.job_title : newUser.job_title,
                 profile: editingUser ? editingUser.profile : newUser.profile,
-                is_active: editingUser ? editingUser.is_active : newUser.is_active
+                is_active: editingUser ? editingUser.is_active : newUser.is_active,
+                password: editingUser ? editingUser.password : (newUser.password || '1234')
             };
 
             const { error } = editingUser
@@ -123,7 +124,7 @@ export const ConfigurationModule: React.FC = () => {
             setMessage(editingUser ? 'Usuario actualizado' : 'Usuario creado');
             setIsAddingUser(false);
             setEditingUser(null);
-            setNewUser({ full_name: '', job_title: '', profile: 'Enfermería', is_active: true });
+            setNewUser({ full_name: '', job_title: '', profile: 'Enfermería', is_active: true, password: '' });
             fetchUsers();
         } catch (err) {
             console.error('Error saving user:', err);
@@ -274,6 +275,7 @@ export const ConfigurationModule: React.FC = () => {
                                             setIsAddingUser(false);
                                             setEditingUser(null);
                                         }}
+                                        title="Cerrar formulario"
                                         className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors"
                                     >
                                         <X size={20} />
@@ -306,8 +308,21 @@ export const ConfigurationModule: React.FC = () => {
                                     </div>
 
                                     <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Contraseña (PIN)</label>
+                                        <input
+                                            type="password"
+                                            value={editingUser ? editingUser.password : newUser.password}
+                                            onChange={(e) => editingUser ? setEditingUser({...editingUser, password: e.target.value}) : setNewUser({ ...newUser, password: e.target.value })}
+                                            className="w-full px-4 py-3 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 focus:border-primary rounded-xl text-slate-700 dark:text-white font-bold transition-all outline-none"
+                                            placeholder="Ej: 1234"
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
                                         <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Perfil de Acceso</label>
                                         <select
+                                            title="Perfil de acceso"
                                             value={editingUser ? editingUser.profile : newUser.profile}
                                             onChange={(e) => {
                                                 const val = e.target.value as any;
@@ -367,12 +382,14 @@ export const ConfigurationModule: React.FC = () => {
                                                 <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                     <button
                                                         onClick={() => setEditingUser(user)}
+                                                        title="Editar usuario"
                                                         className="p-2 text-slate-400 hover:text-primary transition-colors hover:bg-white dark:hover:bg-slate-700 rounded-lg"
                                                     >
                                                         <Edit2 size={16} />
                                                     </button>
                                                     <button
                                                         onClick={() => handleDeleteUser(user.id)}
+                                                        title="Eliminar usuario"
                                                         className="p-2 text-slate-400 hover:text-red-500 transition-colors hover:bg-white dark:hover:bg-slate-700 rounded-lg"
                                                     >
                                                         <Trash2 size={16} />

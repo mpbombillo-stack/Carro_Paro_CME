@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS master_users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   full_name TEXT NOT NULL,
   job_title TEXT NOT NULL, -- Cargo (Nurse, Pharmacist, etc)
+  password TEXT DEFAULT '1234', -- Default password
   profile TEXT NOT NULL CHECK (profile IN ('Administrador', 'Auditor/Farmacia', 'Enfermería')),
   is_active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
