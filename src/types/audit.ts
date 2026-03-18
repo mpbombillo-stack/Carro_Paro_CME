@@ -59,3 +59,11 @@ export interface MasterCart {
     name: string;
     location: string;
 }
+
+export interface MasterUser {
+    id: string;
+    full_name: string;
+    job_title: string;
+    profile: 'Administrador' | 'Auditor/Farmacia' | 'Enfermería';
+    is_active?: boolean;
+}

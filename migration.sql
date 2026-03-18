@@ -72,3 +72,14 @@ CREATE TABLE IF NOT EXISTS audit_custody (
 CREATE INDEX IF NOT EXISTS idx_audit_cart ON audit_headers(cart_id);
 CREATE INDEX IF NOT EXISTS idx_audit_header ON audit_details(header_id);
 CREATE INDEX IF NOT EXISTS idx_master_items_desc ON master_items(description);
+
+-- 6. Master Table for Users
+CREATE TABLE IF NOT EXISTS master_users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  full_name TEXT NOT NULL,
+  job_title TEXT NOT NULL, -- Cargo (Nurse, Pharmacist, etc)
+  profile TEXT NOT NULL CHECK (profile IN ('Administrador', 'Auditor/Farmacia', 'Enfermería')),
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_master_users_name ON master_users(full_name);
