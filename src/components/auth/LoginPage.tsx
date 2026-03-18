@@ -129,6 +129,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                             {loading ? 'VERIFICANDO...' : 'INGRESAR AL SISTEMA'}
                             {!loading && <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />}
                         </button>
+
+                        <div className="pt-4 text-center">
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.15em] leading-relaxed">
+                                App diseñada por<br/>
+                                <span className="text-slate-600 dark:text-slate-300">Q.F Mauricio Suaza Gutierrez & Gemini IA</span>
+                            </p>
+                        </div>
                     </form>
                 </div>
 
