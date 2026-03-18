@@ -24,7 +24,7 @@ export const DashboardModule: React.FC = () => {
         <div className="space-y-8 animate-in fade-in duration-700">
             <header>
                 <h2 className="text-3xl font-black text-slate-800 dark:text-white tracking-tight">Panel Principal</h2>
-                <p className="text-primary font-bold uppercase text-[10px] tracking-widest mt-1">Resumen operativo HospTrack Pro</p>
+                <p className="text-primary font-bold uppercase text-[10px] tracking-widest mt-1">Resumen operativo VerifiCa-RX</p>
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -33,7 +33,7 @@ export const DashboardModule: React.FC = () => {
                     <div className="bg-gradient-to-br from-primary to-blue-700 rounded-[40px] p-10 text-white shadow-2xl shadow-primary/20 relative overflow-hidden group">
                         <LayoutDashboard size={200} className="absolute -bottom-10 -right-10 opacity-10 group-hover:scale-110 transition-transform duration-1000" />
                         <div className="relative z-10 max-w-lg">
-                            <h3 className="text-4xl font-black leading-tight">Bienvenido, <br/>Administrador</h3>
+                            <h3 className="text-4xl font-black leading-tight">Bienvenido, <br/>{localStorage.getItem('auth_user') ? JSON.parse(localStorage.getItem('auth_user')!).full_name.split(' ')[0] : 'Profesional'}</h3>
                             <p className="mt-4 text-blue-100 font-medium text-lg leading-relaxed opacity-80">
                                 Actualmente se han realizado <span className="font-black text-white">{counts.audits} auditorías</span>. 
                                 Hay <span className="font-black text-white">{counts.alerts} inconformidades</span> que requieren atención.
