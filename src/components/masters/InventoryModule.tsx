@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Trash2, Edit3, Pill, PackageCheck } from 'lucide-react';
+import { Plus, Search, Trash2, Edit3, Pill, PackageCheck, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import type { MasterItem } from '../../types/audit';
 
@@ -98,6 +98,7 @@ export const InventoryModule: React.FC = () => {
         category: 'Medicamento'
     });
     const [editingItem, setEditingItem] = useState<MasterItem | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<string | null>(null);
 
@@ -168,12 +169,19 @@ export const InventoryModule: React.FC = () => {
     };
 
     const handleDelete = async (id: string) => {
+        if (!confirm('¿Está seguro de eliminar este ítem?')) return;
         await supabase.from('master_items').delete().eq('id', id);
         const updatedItems = items.filter(item => item.id !== id);
         localStorage.setItem('master_items', JSON.stringify(updatedItems));
         setItems(updatedItems);
         setMessage('Ítem eliminado');
     };
+
+    const filteredItems = items.filter(item => 
+        item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.invima_registry.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (item.category && item.category.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
@@ -183,14 +191,25 @@ export const InventoryModule: React.FC = () => {
                     <p className="text-slate-500 font-medium tracking-tight">Gestiona el catálogo base de insumos para las auditorías.</p>
                 </div>
                 <div className="flex items-center gap-4">
-                    <div className="relative">
-                        <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <div className="relative group">
+                        <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" />
                         <input 
                             type="text" 
                             title="Buscar en el catálogo de medicamentos"
                             placeholder="Buscar en catálogo..." 
-                            className="pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all dark:text-white"
+                            value={searchTerm}
+                            onChange={e => setSearchTerm(e.target.value)}
+                            className="pl-10 pr-10 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/50 transition-all dark:text-white w-64 shadow-sm"
                         />
+                        {searchTerm && (
+                            <button 
+                                onClick={() => setSearchTerm('')}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-red-500 p-0.5 rounded-full hover:bg-red-50 transition-all"
+                                title="Limpiar búsqueda"
+                            >
+                                <X size={14} strokeWidth={3} />
+                            </button>
+                        )}
                     </div>
                     {message && (
                         <div className="px-4 py-2 bg-blue-50 text-blue-600 rounded-xl text-xs font-black uppercase tracking-widest border border-blue-100 animate-bounce">
@@ -209,23 +228,35 @@ export const InventoryModule: React.FC = () => {
                         <form onSubmit={handleSave} className="space-y-4">
                             <div className="space-y-1">
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Descripción / Nombre Genérico</label>
-                                <input 
-                                    type="text"
-                                    required
-                                    list="medications-list"
-                                    value={newItem.description}
-                                    onChange={e => {
-                                        const val = e.target.value;
-                                        const match = PREDEFINED_MEDS.find(m => m.description === val);
-                                        setNewItem({
-                                            ...newItem, 
-                                            description: val,
-                                            presentation: match ? match.presentation : newItem.presentation
-                                        });
-                                    }}
-                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-primary/20 rounded-xl font-bold text-sm outline-none transition-all dark:text-white"
-                                    placeholder="Ej: Adrenalina 1mg/ml"
-                                />
+                                <div className="relative group">
+                                    <input 
+                                        type="text"
+                                        required
+                                        list="medications-list"
+                                        value={newItem.description}
+                                        onChange={e => {
+                                            const val = e.target.value;
+                                            const match = PREDEFINED_MEDS.find(m => m.description === val);
+                                            setNewItem({
+                                                ...newItem, 
+                                                description: val,
+                                                presentation: match ? match.presentation : newItem.presentation
+                                            });
+                                        }}
+                                        className="w-full pl-4 pr-10 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-primary/20 rounded-xl font-bold text-sm outline-none transition-all dark:text-white"
+                                        placeholder="Ej: Adrenalina 1mg/ml"
+                                    />
+                                    {newItem.description && (
+                                        <button 
+                                            type="button"
+                                            onClick={() => setNewItem({...newItem, description: '', presentation: ''})}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-red-500 p-1 rounded-full hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
+                                            title="Limpiar campo"
+                                        >
+                                            <X size={14} strokeWidth={3} />
+                                        </button>
+                                    )}
+                                </div>
                                 <datalist id="medications-list">
                                     {PREDEFINED_MEDS.map((med, idx) => (
                                         <option key={idx} value={med.description} />
@@ -324,7 +355,7 @@ export const InventoryModule: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                {items.map(item => (
+                                {filteredItems.map(item => (
                                     <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors group">
                                         <td className="py-4 px-6">
                                             <div className="flex items-center gap-3">
