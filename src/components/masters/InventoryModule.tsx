@@ -3,6 +3,41 @@ import { Plus, Search, Trash2, Edit3, Pill, PackageCheck } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import type { MasterItem } from '../../types/audit';
 
+const PREDEFINED_MEDS = [
+    { description: 'ADRENALINA 1MG/ML', presentation: 'Ampolla 1ml' },
+    { description: 'AGUA DESTILADA', presentation: 'Ampolla 10ml' },
+    { description: 'AMIODARONA 150MG', presentation: 'Ampolla 3ml' },
+    { description: 'ASPIRINA 100MG', presentation: 'Tableta' },
+    { description: 'ATROPINA SULFATO 1MG', presentation: 'Ampolla 1ml' },
+    { description: 'BICARBONATO DE SODIO 10%', presentation: 'Ampolla 10ml' },
+    { description: 'BROMURO DE IPRATROPIO', presentation: 'Inhalador' },
+    { description: 'CLONIDINA 150MCG', presentation: 'Ampolla 1ml' },
+    { description: 'CLORURO DE POTASIO', presentation: 'Ampolla 10ml' },
+    { description: 'CLORURO DE SODIO 0.9%', presentation: 'Bolsa 500ml' },
+    { description: 'DEXAMETASONA 4MG/ML', presentation: 'Ampolla 1ml' },
+    { description: 'DIAZEPAM 10MG', presentation: 'Ampolla 2ml' },
+    { description: 'DOPAMINA 200MG/5ML', presentation: 'Ampolla 5ml' },
+    { description: 'EPINEFRINA 1MG/ML', presentation: 'Ampolla 1ml' },
+    { description: 'ETOMIDATO 20MG/10ML', presentation: 'Vial 10ml' },
+    { description: 'FENTANILO 0.5MG/10ML', presentation: 'Ampolla 10ml' },
+    { description: 'FUROSEMIDA 20MG/2ML', presentation: 'Ampolla 2ml' },
+    { description: 'GLUCONATO DE CALCIO 10%', presentation: 'Ampolla 10ml' },
+    { description: 'HALOPERIDOL 5MG/ML', presentation: 'Ampolla 1ml' },
+    { description: 'HEPARINA SODICA 5000UI/ML', presentation: 'Vial 5ml' },
+    { description: 'HIDROCORTISONA 100MG', presentation: 'Vial' },
+    { description: 'ISOSORBIDE DINITRATO 5MG', presentation: 'Tabletas' },
+    { description: 'LIDOCAINA 2%', presentation: 'Frasco 50ml' },
+    { description: 'METILPREDNISOLONA 500MG', presentation: 'Vial' },
+    { description: 'MIDAZOLAM 5MG/5ML', presentation: 'Ampolla 5ml' },
+    { description: 'MORFINA 10MG/ML', presentation: 'Ampolla 1ml' },
+    { description: 'NALOXONA 0.4MG/ML', presentation: 'Ampolla 1ml' },
+    { description: 'NITROGLICERINA 50MG/10ML', presentation: 'Ampolla 10ml' },
+    { description: 'NOREPINEFRINA 4MG', presentation: 'Ampolla 4ml' },
+    { description: 'RANITIDINA 50MG/2ML', presentation: 'Ampolla 2ml' },
+    { description: 'VECURONIO 4MG', presentation: 'Vial' },
+    { description: 'VERAPAMILO 5MG/2ML', presentation: 'Ampolla 2ml' }
+];
+
 export const InventoryModule: React.FC = () => {
     const [items, setItems] = useState<MasterItem[]>([]);
     const [newItem, setNewItem] = useState<Partial<MasterItem>>({
@@ -128,11 +163,25 @@ export const InventoryModule: React.FC = () => {
                                 <input 
                                     type="text"
                                     required
+                                    list="medications-list"
                                     value={newItem.description}
-                                    onChange={e => setNewItem({...newItem, description: e.target.value})}
+                                    onChange={e => {
+                                        const val = e.target.value;
+                                        const match = PREDEFINED_MEDS.find(m => m.description === val);
+                                        setNewItem({
+                                            ...newItem, 
+                                            description: val,
+                                            presentation: match ? match.presentation : newItem.presentation
+                                        });
+                                    }}
                                     className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-primary/20 rounded-xl font-bold text-sm outline-none transition-all dark:text-white"
                                     placeholder="Ej: Adrenalina 1mg/ml"
                                 />
+                                <datalist id="medications-list">
+                                    {PREDEFINED_MEDS.map((med, idx) => (
+                                        <option key={idx} value={med.description} />
+                                    ))}
+                                </datalist>
                             </div>
                             <div className="space-y-1">
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Presentación / Concentración</label>
