@@ -10,10 +10,12 @@ interface Props {
 export const SignaturePad: React.FC<Props> = ({ title, onSave }) => {
     const sigCanvas = useRef<SignatureCanvas>(null);
     const [saved, setSaved] = useState(false);
+    const [touched, setTouched] = useState(false);
 
     const clear = () => {
         sigCanvas.current?.clear();
         setSaved(false);
+        setTouched(false);
     };
 
     const save = () => {
@@ -40,12 +42,13 @@ export const SignaturePad: React.FC<Props> = ({ title, onSave }) => {
                 <SignatureCanvas
                     ref={sigCanvas}
                     penColor="#0f172a"
+                    onBegin={() => setTouched(true)}
                     canvasProps={{ 
                         className: 'w-full h-40 cursor-crosshair'
                     }}
                     onEnd={save}
                 />
-                {!saved && sigCanvas.current?.isEmpty() && (
+                {!touched && !saved && (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
                         <span className="text-sm font-medium">Firme aquí</span>
                     </div>

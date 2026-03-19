@@ -30,11 +30,11 @@ function App() {
       case 'config':
         return <ConfigurationModule />;
       case 'dashboard':
-        return <DashboardModule />;
+        return <DashboardModule user={DEFAULT_USER} />;
       case 'reportes':
         return <ReportsModule />;
       default:
-        return <DashboardModule />;
+        return <DashboardModule user={DEFAULT_USER} />;
     }
   };
 

@@ -10,9 +10,15 @@ import type { AuditStatus } from '../types/audit';
  * @returns {AuditStatus}
  */
 export function getTrafficLightStatus(fechaItem: string, fechaRegistro: string): AuditStatus {
+    if (!fechaItem || !fechaRegistro) return 'ROJO';
+
     const today = new Date();
     const dateItem = new Date(fechaItem);
     const dateReg = new Date(fechaRegistro);
+
+    if (isNaN(dateItem.getTime()) || isNaN(dateReg.getTime())) {
+        return 'ROJO';
+    }
 
     // Consideramos la fecha mas restrictiva.
     const earliestExpiration = dateItem < dateReg ? dateItem : dateReg;

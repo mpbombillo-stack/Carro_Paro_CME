@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { LayoutDashboard, Users, Clock, History } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
-export const DashboardModule: React.FC = () => {
+import type { MasterUser } from '../../types/audit';
+
+export const DashboardModule: React.FC<{ user?: MasterUser }> = ({ user }) => {
     const [counts, setCounts] = useState({ audits: 0, alerts: 0, carts: 0 });
 
     useEffect(() => {
@@ -33,7 +35,10 @@ export const DashboardModule: React.FC = () => {
                     <div className="bg-gradient-to-br from-primary to-blue-700 rounded-[40px] p-10 text-white shadow-2xl shadow-primary/20 relative overflow-hidden group">
                         <LayoutDashboard size={200} className="absolute -bottom-10 -right-10 opacity-10 group-hover:scale-110 transition-transform duration-1000" />
                         <div className="relative z-10 max-w-lg">
-                            <h3 className="text-4xl font-black leading-tight">Bienvenido, <br/>{localStorage.getItem('auth_user') ? JSON.parse(localStorage.getItem('auth_user')!).full_name.split(' ')[0] : 'Profesional'}</h3>
+                            <h3 className="text-4xl font-black leading-tight">
+                                Bienvenido, <br/>
+                                {user?.full_name.split(' ')[0] || 'Profesional'}
+                            </h3>
                             <p className="mt-4 text-blue-100 font-medium text-lg leading-relaxed opacity-80">
                                 Actualmente se han realizado <span className="font-black text-white">{counts.audits} auditorías</span>. 
                                 Hay <span className="font-black text-white">{counts.alerts} inconformidades</span> que requieren atención.

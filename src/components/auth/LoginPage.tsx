@@ -20,7 +20,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 
         try {
             // First try to fetch from Supabase
-            const { data, error: sbError } = await supabase
+            const { data } = await supabase
                 .from('master_users')
                 .select('*')
                 .or(`full_name.ilike.%${username}%,full_name.eq.${username}`)
