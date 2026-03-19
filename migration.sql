@@ -12,11 +12,11 @@ CREATE TABLE IF NOT EXISTS ips_settings (
 -- 1. Cabecera de Auditoría (AuditHeader)
 CREATE TABLE IF NOT EXISTS audit_headers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  start_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  end_at TIMESTAMP WITH TIME ZONE,
-  service_location TEXT NOT NULL,
-  cart_id TEXT NOT NULL,
-  auditor_user TEXT NOT NULL,
+  fecha_hora_inicio TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  fecha_hora_fin TIMESTAMP WITH TIME ZONE,
+  servicio_ubicacion TEXT NOT NULL,
+  id_carro TEXT NOT NULL,
+  responsable_usuario TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -24,61 +24,61 @@ CREATE TABLE IF NOT EXISTS audit_headers (
 CREATE TABLE IF NOT EXISTS master_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   description TEXT NOT NULL,
-  presentation TEXT, -- Ampolla x 1ml, etc.
+  presentation TEXT,
   invima_registry TEXT NOT NULL,
-  invima_expiration DATE, -- When the registry expires
+  invima_expiration DATE,
   standard_quantity INTEGER NOT NULL DEFAULT 1,
-  category TEXT, -- Medicamento, Dispositivo, etc.
+  category TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- 3. Master Table for Carts/Kits
 CREATE TABLE IF NOT EXISTS master_carts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name TEXT NOT NULL, -- e.g. "Carro CP-082"
-  location TEXT NOT NULL, -- e.g. "Urgencias"
+  name TEXT NOT NULL,
+  location TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 4. Detalle del Ítem (AuditDetail) - Validación Farmacéutica
+-- 4. Detalle del Ítem (AuditDetail)
 CREATE TABLE IF NOT EXISTS audit_details (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  header_id UUID REFERENCES audit_headers(id) ON DELETE CASCADE,
-  item_id UUID REFERENCES master_items(id), -- Link to master item
-  description TEXT NOT NULL, -- Snapshot of description
-  quantity INTEGER NOT NULL,
-  lot TEXT NOT NULL,
-  expiration_date DATE NOT NULL,
-  invima_registry TEXT NOT NULL, -- Snapshot
-  invima_expiration DATE NOT NULL,
-  is_conform BOOLEAN DEFAULT TRUE,
+  audit_header_id UUID REFERENCES audit_headers(id) ON DELETE CASCADE,
+  item_id UUID REFERENCES master_items(id),
+  descripcion TEXT NOT NULL,
+  cantidad_fisica INTEGER NOT NULL,
+  lote TEXT NOT NULL,
+  fecha_vencimiento_insumo DATE NOT NULL,
+  registro_sanitario TEXT NOT NULL,
+  vencimiento_registro_sanitario DATE NOT NULL,
+  estado_conformidad BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- 5. Custodia y Seguridad (AuditCustody)
 CREATE TABLE IF NOT EXISTS audit_custody (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  header_id UUID REFERENCES audit_headers(id) ON DELETE CASCADE,
-  opening_seal TEXT NOT NULL,
-  closing_seal TEXT NOT NULL,
-  reason TEXT NOT NULL CHECK (reason IN ('Revisión Rutinaria', 'Emergencia/Código Azul', 'Caducidad')),
-  observation_mismatch TEXT,
-  pharmacy_signature TEXT, -- Store as Base64 or URL
-  nursing_signature TEXT,   -- Store as Base64 or URL
+  audit_header_id UUID REFERENCES audit_headers(id) ON DELETE CASCADE,
+  serial_apertura TEXT NOT NULL,
+  serial_cierre TEXT NOT NULL,
+  motivo_apertura TEXT NOT NULL CHECK (motivo_apertura IN ('Revisión Rutinaria', 'Emergencia/Código Azul', 'Caducidad')),
+  observacion_discrepancia TEXT,
+  firma_farmacia_img TEXT, 
+  firma_enfermeria_img TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Indexes
-CREATE INDEX IF NOT EXISTS idx_audit_cart ON audit_headers(cart_id);
-CREATE INDEX IF NOT EXISTS idx_audit_header ON audit_details(header_id);
+CREATE INDEX IF NOT EXISTS idx_audit_cart ON audit_headers(id_carro);
+CREATE INDEX IF NOT EXISTS idx_audit_header ON audit_details(audit_header_id);
 CREATE INDEX IF NOT EXISTS idx_master_items_desc ON master_items(description);
 
 -- 6. Master Table for Users
 CREATE TABLE IF NOT EXISTS master_users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   full_name TEXT NOT NULL,
-  job_title TEXT NOT NULL, -- Cargo (Nurse, Pharmacist, etc)
-  password TEXT DEFAULT '1234', -- Default password
+  job_title TEXT NOT NULL,
+  password TEXT DEFAULT '1234',
   profile TEXT NOT NULL CHECK (profile IN ('Administrador', 'Auditor/Farmacia', 'Enfermería')),
   is_active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
