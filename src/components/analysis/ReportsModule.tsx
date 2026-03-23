@@ -30,12 +30,12 @@ export const ReportsModule: React.FC = () => {
     }, [stats.conformityRate]);
 
     const fetchStats = async () => {
-        const { data: headers } = await supabase.from('audit_headers').select('id, start_at');
-        const { data: details } = await supabase.from('audit_details').select('is_conform');
+        const { data: headers } = await supabase.from('audit_headers').select('id, fecha_hora_inicio');
+        const { data: details } = await supabase.from('audit_details').select('estado_conformidad');
 
         const total = headers?.length || 0;
         const totalDetails = details?.length || 0;
-        const conformingDetails = details?.filter(d => d.is_conform).length || 0;
+        const conformingDetails = details?.filter(d => d.estado_conformidad).length || 0;
         const rate = totalDetails > 0 ? (conformingDetails / totalDetails) * 100 : 0;
 
         setStats({

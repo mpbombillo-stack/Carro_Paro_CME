@@ -10,7 +10,7 @@ export const DashboardModule: React.FC<{ user?: MasterUser }> = ({ user }) => {
     useEffect(() => {
         const fetchDashboardData = async () => {
             const { count: auditsCount } = await supabase.from('audit_headers').select('*', { count: 'exact', head: true });
-            const { data: alerts } = await supabase.from('audit_details').select('id').eq('is_conform', false);
+            const { data: alerts } = await supabase.from('audit_details').select('id').eq('estado_conformidad', false);
             const { count: cartsCount } = await supabase.from('master_carts').select('*', { count: 'exact', head: true });
 
             setCounts({
