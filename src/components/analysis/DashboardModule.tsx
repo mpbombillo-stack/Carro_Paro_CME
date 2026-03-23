@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Users, Clock, History } from 'lucide-react';
+import { LayoutDashboard, Users, Clock, History, Trash2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 import type { MasterUser } from '../../types/audit';
 
 export const DashboardModule: React.FC<{ user?: MasterUser }> = ({ user }) => {
     const [counts, setCounts] = useState({ audits: 0, alerts: 0, carts: 0 });
+    const [recentActivity, setRecentActivity] = useState([
+        { user: 'Jefe María', action: 'Verificó CP-01', time: 'Hace 5 min' },
+        { user: 'Farm. Carlos', action: 'Ajustó stock Adrenalina', time: 'Hace 12 min' },
+        { user: 'Dr. Pedro', action: 'Firmó Auditoría #82', time: 'Hace 45 min' },
+    ]);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -73,26 +78,40 @@ export const DashboardModule: React.FC<{ user?: MasterUser }> = ({ user }) => {
 
                 <div className="space-y-6">
                     <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-8 rounded-[32px] shadow-sm h-full flex flex-col">
-                        <h4 className="flex items-center gap-2 text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest mb-6">
-                            <History size={18} className="text-primary" /> Actividad Reciente
+                        <h4 className="flex justify-between items-center text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest mb-6">
+                            <div className="flex items-center gap-2">
+                                <History size={18} className="text-primary" /> Actividad Reciente
+                            </div>
+                            {recentActivity.length > 0 && (
+                                <button 
+                                    onClick={() => setRecentActivity([])}
+                                    className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-500 rounded-xl transition-all"
+                                    title="Limpiar actividad"
+                                >
+                                    <Trash2 size={16} />
+                                </button>
+                            )}
                         </h4>
                         <div className="flex-1 space-y-6">
-                            {[
-                                { user: 'Jefe María', action: 'Verificó CP-01', time: 'Hace 5 min' },
-                                { user: 'Farm. Carlos', action: 'Ajustó stock Adrenalina', time: 'Hace 12 min' },
-                                { user: 'Dr. Pedro', action: 'Firmó Auditoría #82', time: 'Hace 45 min' },
-                            ].map((act, i) => (
-                                <div key={i} className="flex gap-4 group cursor-default">
-                                    <div className="size-10 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center justify-center text-[10px] font-black group-hover:bg-primary group-hover:text-white transition-colors duration-500">
-                                        {act.user.split(' ')[1].substring(0,2).toUpperCase()}
+                            {recentActivity.length > 0 ? (
+                                recentActivity.map((act, i) => (
+                                    <div key={i} className="flex gap-4 group cursor-default">
+                                        <div className="size-10 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center justify-center text-[10px] font-black group-hover:bg-primary group-hover:text-white transition-colors duration-500">
+                                            {act.user.split(' ')[1]?.substring(0,2).toUpperCase() || '??'}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs font-black text-slate-700 dark:text-slate-200">{act.user}</p>
+                                            <p className="text-[10px] font-bold text-slate-400 truncate mt-0.5">{act.action}</p>
+                                        </div>
+                                        <span className="text-[8px] font-black text-slate-300 uppercase shrink-0 pt-0.5">{act.time}</span>
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-xs font-black text-slate-700 dark:text-slate-200">{act.user}</p>
-                                        <p className="text-[10px] font-bold text-slate-400 truncate mt-0.5">{act.action}</p>
-                                    </div>
-                                    <span className="text-[8px] font-black text-slate-300 uppercase shrink-0 pt-0.5">{act.time}</span>
+                                ))
+                            ) : (
+                                <div className="flex flex-col items-center justify-center py-10 text-slate-300 gap-2">
+                                    <History size={40} className="opacity-20" />
+                                    <p className="text-[10px] font-black uppercase tracking-widest">Sin actividad</p>
                                 </div>
-                            ))}
+                            )}
                         </div>
                         <button className="w-full py-4 text-[10px] font-black text-primary border-t border-slate-50 dark:border-slate-800 mt-6 hover:tracking-widest transition-all uppercase">Ver todos los eventos</button>
                     </div>
