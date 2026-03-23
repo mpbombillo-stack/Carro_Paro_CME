@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { AuditCustody } from '../../types/audit';
 import { SignaturePad } from './SignaturePad';
-import { ShieldAlert } from 'lucide-react';
+import { ShieldAlert, Key, Lock, ClipboardList } from 'lucide-react';
 
 interface Props {
     custody: AuditCustody;
@@ -33,7 +33,7 @@ export const CustodyForm: React.FC<Props> = ({ custody, onUpdate }) => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="flex flex-col gap-2">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                        <span className="material-symbols-outlined text-sm">key</span>
+                        <Key size={14} />
                         Precinto Encontrado
                     </label>
                     <input
@@ -56,7 +56,7 @@ export const CustodyForm: React.FC<Props> = ({ custody, onUpdate }) => {
 
                 <div className="flex flex-col gap-2">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                        <span className="material-symbols-outlined text-sm">lock</span>
+                        <Lock size={14} />
                         Nuevo Precinto
                     </label>
                     <input
@@ -72,7 +72,7 @@ export const CustodyForm: React.FC<Props> = ({ custody, onUpdate }) => {
 
                 <div className="flex flex-col gap-2">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                        <span className="material-symbols-outlined text-sm">assignment_late</span>
+                        <ClipboardList size={14} />
                         Motivo Apertura
                     </label>
                     <select

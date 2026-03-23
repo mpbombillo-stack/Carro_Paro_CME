@@ -415,7 +415,7 @@ export const CartsModule: React.FC = () => {
                             <h3 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-3">
                                 <Upload className="text-primary" /> Importar Nuevo Carro
                             </h3>
-                            <button onClick={() => setShowImportModal(false)} className="text-slate-400 hover:text-red-500 transition-colors"><X /></button>
+                            <button onClick={() => setShowImportModal(false)} className="text-slate-400 hover:text-red-500 transition-colors" title="Cerrar modal"><X /></button>
                         </header>
                         
                         <div className="space-y-4">

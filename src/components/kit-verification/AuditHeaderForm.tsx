@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import type { AuditHeader, MasterCart } from '../../types/audit';
 import { supabase } from '../../lib/supabase';
+import { ChevronDown, User, Calendar } from 'lucide-react';
 
 interface Props {
     header: AuditHeader;
@@ -54,7 +55,7 @@ export const AuditHeaderForm: React.FC<Props> = ({ header, onUpdate }) => {
                         ))}
                     </select>
                     <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">
-                        <span className="material-symbols-outlined">expand_more</span>
+                        <ChevronDown size={18} />
                     </div>
                 </div>
             </div>
@@ -78,7 +79,7 @@ export const AuditHeaderForm: React.FC<Props> = ({ header, onUpdate }) => {
                         ))}
                     </select>
                     <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">
-                        <span className="material-symbols-outlined">expand_more</span>
+                        <ChevronDown size={18} />
                     </div>
                 </div>
             </div>
@@ -87,7 +88,7 @@ export const AuditHeaderForm: React.FC<Props> = ({ header, onUpdate }) => {
                 <label className="text-xs font-black text-slate-500 uppercase tracking-[0.2em] px-1">Responsable</label>
                 <div className="flex items-center gap-4 p-4 bg-slate-100/50 dark:bg-slate-800/80 rounded-2xl border border-slate-200/50 dark:border-white/5">
                     <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                        <span className="material-symbols-outlined text-xl">person</span>
+                        <User size={18} />
                     </div>
                     <span className="text-sm font-black text-slate-600 dark:text-slate-200">{header.responsable_usuario}</span>
                 </div>
@@ -97,7 +98,7 @@ export const AuditHeaderForm: React.FC<Props> = ({ header, onUpdate }) => {
                 <label className="text-xs font-black text-slate-500 uppercase tracking-[0.2em] px-1">Fecha de Auditoría</label>
                 <div className="flex items-center gap-4 p-4 bg-slate-100/50 dark:bg-slate-800/80 rounded-2xl border border-slate-200/50 dark:border-white/5">
                     <div className="size-8 rounded-xl bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500">
-                        <span className="material-symbols-outlined text-xl">calendar_today</span>
+                        <Calendar size={18} />
                     </div>
                     <span className="text-sm font-black text-slate-600 dark:text-slate-200">
                         {new Date(header.fecha_hora_inicio).toLocaleDateString()}
