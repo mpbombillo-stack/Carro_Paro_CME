@@ -24,11 +24,17 @@ export function DetailedAuditView({ data, onUpdate, onBack }: DetailedAuditViewP
     // Auto-load template when cart is selected
     useEffect(() => {
         const loadTemplate = async () => {
-            if (data.header.id_carro && data.details.length === 0) {
-                const { data: template } = await supabase
+            const cartUuid = data.header.cart_id;
+            if (cartUuid && data.details.length === 0) {
+                const { data: template, error } = await supabase
                     .from('cart_items_template')
                     .select('*, master_items(*)')
-                    .eq('cart_id', data.header.id_carro);
+                    .eq('cart_id', cartUuid);
+                
+                if (error) {
+                    console.warn('No se pudo cargar la plantilla (posible tabla inexistente):', error.message);
+                    return;
+                }
                 
                 if (template && template.length > 0) {
                     const initialDetails = template.map((t: any) => ({

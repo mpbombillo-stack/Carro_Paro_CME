@@ -97,7 +97,9 @@ export const CartsModule: React.FC = () => {
             for (let i = 1; i < lines.length; i++) {
                 const line = lines[i].trim();
                 if (!line) continue;
-                const [desc, qty] = line.split(',').map(p => p.trim());
+                
+                const delimiter = line.includes(';') ? ';' : ',';
+                const [desc, qty] = line.split(delimiter).map(p => p.trim());
                 
                 // Find item ID by description
                 const { data: item } = await supabase
@@ -110,7 +112,7 @@ export const CartsModule: React.FC = () => {
                     await supabase.from('cart_items_template').upsert([{
                         cart_id: selectedCartForItems.id,
                         master_item_id: item.id,
-                        standard_quantity: parseInt(qty) || 1
+                        standard_quantity: parseInt(qty?.replace(/[^0-9]/g, '') || '1') || 1
                     }]);
                 }
             }

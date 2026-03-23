@@ -4,7 +4,8 @@ export interface AuditHeader {
     id: string;
     fecha_hora_inicio: string;
     servicio_ubicacion: string;
-    id_carro: string;
+    id_carro: string; // Name/Identifier for display
+    cart_id?: string; // UUID for database relations
     responsable_usuario: string;
 }
 

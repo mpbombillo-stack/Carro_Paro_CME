@@ -154,8 +154,9 @@ export const InventoryModule: React.FC = () => {
                 const line = lines[i].trim();
                 if (!line) continue;
 
-                // Simple split by comma (assuming no commas in values or quoted values)
-                const parts = line.split(',').map(p => p.trim());
+                // Split by comma OR semicolon
+                const delimiter = line.includes(';') ? ';' : ',';
+                const parts = line.split(delimiter).map(p => p.trim());
                 if (parts.length >= 3) {
                     newItems.push({
                         description: parts[0],

@@ -19,7 +19,17 @@ export const AuditHeaderForm: React.FC<Props> = ({ header, onUpdate }) => {
     }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        onUpdate({ ...header, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        if (name === 'id_carro') {
+            const selectedCart = carts.find(c => c.name === value);
+            onUpdate({ 
+                ...header, 
+                id_carro: value, 
+                cart_id: selectedCart?.id 
+            });
+        } else {
+            onUpdate({ ...header, [name]: value });
+        }
     };
 
     // Get unique locations from carts
