@@ -39,6 +39,7 @@ export function DetailedAuditView({ data, onUpdate, onBack }: DetailedAuditViewP
                 if (template && template.length > 0) {
                     const initialDetails = template.map((t: any) => ({
                         id: Math.random().toString(36).substr(2, 9),
+                        item_id: t.master_item_id,
                         descripcion: t.master_items.description,
                         cantidad_estandar: t.standard_quantity,
                         cantidad_fisica: 0,
@@ -54,7 +55,7 @@ export function DetailedAuditView({ data, onUpdate, onBack }: DetailedAuditViewP
         };
 
         loadTemplate();
-    }, [data.header.id_carro]);
+    }, [data.header.id_carro, data.header.cart_id]);
 
     const handleExport = async () => {
         try {
@@ -72,11 +73,11 @@ export function DetailedAuditView({ data, onUpdate, onBack }: DetailedAuditViewP
             const { data: headerData, error: headerError } = await supabase
                 .from('audit_headers')
                 .insert([{
-                    start_at: data.header.fecha_hora_inicio,
-                    end_at: new Date().toISOString(),
-                    service_location: data.header.servicio_ubicacion,
-                    cart_id: data.header.id_carro,
-                    auditor_user: data.header.responsable_usuario
+                    fecha_hora_inicio: data.header.fecha_hora_inicio,
+                    fecha_hora_fin: new Date().toISOString(),
+                    servicio_ubicacion: data.header.servicio_ubicacion,
+                    id_carro: data.header.id_carro,
+                    responsable_usuario: data.header.responsable_usuario
                 }])
                 .select()
                 .single();
@@ -87,14 +88,15 @@ export function DetailedAuditView({ data, onUpdate, onBack }: DetailedAuditViewP
 
             // 2. Save Details
             const detailsToInsert = data.details.map(d => ({
-                header_id: headerId,
-                description: d.descripcion,
-                quantity: d.cantidad_fisica,
-                lot: d.lote,
-                expiration_date: d.fecha_vencimiento_insumo || new Date().toISOString().split('T')[0],
-                invima_registry: d.registro_sanitario,
-                invima_expiration: d.vencimiento_registro_sanitario || new Date().toISOString().split('T')[0],
-                is_conform: d.estado_conformidad
+                audit_header_id: headerId,
+                item_id: d.item_id,
+                descripcion: d.descripcion,
+                cantidad_fisica: d.cantidad_fisica,
+                lote: d.lote || 'N/A',
+                fecha_vencimiento_insumo: d.fecha_vencimiento_insumo || new Date().toISOString().split('T')[0],
+                registro_sanitario: d.registro_sanitario,
+                vencimiento_registro_sanitario: d.vencimiento_registro_sanitario || new Date().toISOString().split('T')[0],
+                estado_conformidad: d.estado_conformidad
             }));
 
             const { error: detailsError } = await supabase
@@ -107,13 +109,13 @@ export function DetailedAuditView({ data, onUpdate, onBack }: DetailedAuditViewP
             const { error: custodyError } = await supabase
                 .from('audit_custody')
                 .insert([{
-                    header_id: headerId,
-                    opening_seal: data.custody.serial_apertura,
-                    closing_seal: data.custody.serial_cierre,
-                    reason: data.custody.motivo_apertura,
-                    observation_mismatch: data.custody.observacion_discrepancia,
-                    pharmacy_signature: data.custody.firma_farmacia_img,
-                    nursing_signature: data.custody.firma_enfermeria_img
+                    audit_header_id: headerId,
+                    serial_apertura: data.custody.serial_apertura,
+                    serial_cierre: data.custody.serial_cierre,
+                    motivo_apertura: data.custody.motivo_apertura,
+                    observacion_discrepancia: data.custody.observacion_discrepancia,
+                    firma_farmacia_img: data.custody.firma_farmacia_img,
+                    firma_enfermeria_img: data.custody.firma_enfermeria_img
                 }]);
 
             if (custodyError) throw custodyError;

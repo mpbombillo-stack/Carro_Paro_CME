@@ -43,7 +43,9 @@ export const AuditDetailList: React.FC<Props> = ({ details, onUpdate }) => {
         const newItem: AuditDetail = {
             id: 'NEW-' + Date.now(),
             audit_header_id: '',
+            item_id: master.id,
             descripcion: master.description,
+            cantidad_estandar: master.standard_quantity,
             cantidad_fisica: master.standard_quantity,
             lote: '',
             fecha_vencimiento_insumo: '',

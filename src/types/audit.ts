@@ -10,9 +10,11 @@ export interface AuditHeader {
 }
 
 export interface AuditDetail {
-    id: string;
+    id: string; // Client-side temp ID
     audit_header_id: string;
+    item_id?: string; // Reference to master_items.id
     descripcion: string;
+    cantidad_estandar?: number; // Added for template reference
     cantidad_fisica: number;
     lote: string;
     fecha_vencimiento_insumo: string;
