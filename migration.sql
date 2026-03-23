@@ -24,8 +24,19 @@ CREATE TABLE IF NOT EXISTS audit_headers (
 -- Ensure columns exist if table was created previously
 DO $$ 
 BEGIN 
+    -- audit_headers
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='audit_headers' AND column_name='id_carro') THEN
         ALTER TABLE audit_headers ADD COLUMN id_carro TEXT;
+    END IF;
+
+    -- audit_details
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='audit_details' AND column_name='audit_header_id') THEN
+        ALTER TABLE audit_details ADD COLUMN audit_header_id UUID REFERENCES audit_headers(id) ON DELETE CASCADE;
+    END IF;
+
+    -- audit_custody
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='audit_custody' AND column_name='audit_header_id') THEN
+        ALTER TABLE audit_custody ADD COLUMN audit_header_id UUID REFERENCES audit_headers(id) ON DELETE CASCADE;
     END IF;
 END $$;
 
