@@ -7,7 +7,8 @@ export const CartsModule: React.FC = () => {
     const [carts, setCarts] = useState<MasterCart[]>([]);
     const [newCart, setNewCart] = useState<Partial<MasterCart>>({
         name: '',
-        location: ''
+        location: '',
+        revision_month: ''
     });
     const [editingId, setEditingId] = useState<string | null>(null);
     const [selectedCartForItems, setSelectedCartForItems] = useState<MasterCart | null>(null);
@@ -18,6 +19,8 @@ export const CartsModule: React.FC = () => {
     const [templateItems, setTemplateItems] = useState<(CartItemTemplate & { master_items: MasterItem })[]>([]);
     const [masterItems, setMasterItems] = useState<MasterItem[]>([]);
     const [searchItem, setSearchItem] = useState('');
+    const [showImportModal, setShowImportModal] = useState(false);
+    const [importMetadata, setImportMetadata] = useState({ name: '', location: '', revision_month: '' });
 
     useEffect(() => {
         fetchCarts();
@@ -84,9 +87,10 @@ export const CartsModule: React.FC = () => {
         if (selectedCartForItems) fetchTemplateItems(selectedCartForItems.id);
     };
 
-    const handleTemplateCSV = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleTemplateCSV = async (e: React.ChangeEvent<HTMLInputElement>, targetCart?: MasterCart) => {
         const file = e.target.files?.[0];
-        if (!file || !selectedCartForItems) return;
+        const cartToUse = targetCart || selectedCartForItems;
+        if (!file || !cartToUse) return;
 
         const reader = new FileReader();
         reader.onload = async (event) => {
@@ -129,7 +133,7 @@ export const CartsModule: React.FC = () => {
                     if (item) {
                         const standard_quantity = parseInt(qtyStr?.replace(/[^0-9]/g, '') || '1') || 1;
                         await supabase.from('cart_items_template').upsert([{
-                            cart_id: selectedCartForItems.id,
+                            cart_id: cartToUse.id,
                             master_item_id: item.id,
                             standard_quantity
                         }]);
@@ -138,9 +142,10 @@ export const CartsModule: React.FC = () => {
                 }
             }
 
-            fetchTemplateItems(selectedCartForItems.id);
+            fetchTemplateItems(cartToUse.id);
+            fetchCarts(); // Refresh list to show the new cart if it was just created
             setLoading(false);
-            setMessage(`Plantilla actualizada: ${importedCount} ítems vinculados`);
+            setMessage(`Carro "${cartToUse.name}" configurado: ${importedCount} ítems vinculados`);
             e.target.value = ''; // Reset input
         };
         reader.readAsText(file);
@@ -167,7 +172,7 @@ export const CartsModule: React.FC = () => {
         localStorage.setItem('master_carts', JSON.stringify(updatedCarts));
         setCarts(updatedCarts);
         
-        setNewCart({ name: '', location: '' });
+        setNewCart({ name: '', location: '', revision_month: '' });
         setEditingId(null);
         setLoading(false);
         setMessage(error ? 'Guardado localmente (Demo)' : 'Carro guardado');
@@ -195,6 +200,14 @@ export const CartsModule: React.FC = () => {
                         {message}
                     </div>
                 )}
+                <div className="flex gap-2 mb-1">
+                    <button 
+                        onClick={() => setShowImportModal(true)}
+                        className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-primary font-black text-xs uppercase tracking-widest hover:shadow-lg transition-all"
+                    >
+                        <Upload size={16} /> Importar Carro (CSV)
+                    </button>
+                </div>
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -224,6 +237,16 @@ export const CartsModule: React.FC = () => {
                                     onChange={e => setNewCart({...newCart, location: e.target.value})}
                                     className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-primary/20 rounded-xl font-bold text-sm outline-none transition-all dark:text-white"
                                     placeholder="Ej: Urgencias - Piso 2"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Mes de Revisión</label>
+                                <input 
+                                    type="text"
+                                    value={newCart.revision_month}
+                                    onChange={e => setNewCart({...newCart, revision_month: e.target.value})}
+                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-primary/20 rounded-xl font-bold text-sm outline-none transition-all dark:text-white"
+                                    placeholder="Ej: Marzo 2026"
                                 />
                             </div>
                             <button 
@@ -262,9 +285,17 @@ export const CartsModule: React.FC = () => {
                                     </div>
                                 </div>
                                 <h4 className="text-xl font-black text-slate-800 dark:text-white leading-tight">{cart.name}</h4>
-                                <div className="mt-2 flex items-center gap-2 text-slate-500 font-bold text-xs uppercase tracking-wider">
-                                    <MapPin size={14} className="text-slate-400" />
-                                    {cart.location}
+                                <div className="mt-2 flex flex-col gap-2">
+                                    <div className="flex items-center gap-2 text-slate-500 font-bold text-xs uppercase tracking-wider">
+                                        <MapPin size={14} className="text-slate-400" />
+                                        {cart.location}
+                                    </div>
+                                    {cart.revision_month && (
+                                        <div className="flex items-center gap-2 text-primary font-black text-[10px] uppercase tracking-widest bg-primary/5 w-fit px-2 py-1 rounded-lg">
+                                            <PackageCheck size={12} />
+                                            Revisión: {cart.revision_month}
+                                        </div>
+                                    )}
                                 </div>
                                 <button 
                                     onClick={() => setSelectedCartForItems(cart)}
@@ -371,6 +402,95 @@ export const CartsModule: React.FC = () => {
                                     )}
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Import Cart Modal */}
+            {showImportModal && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl shadow-2xl p-8 space-y-6">
+                        <header className="flex justify-between items-center">
+                            <h3 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-3">
+                                <Upload className="text-primary" /> Importar Nuevo Carro
+                            </h3>
+                            <button onClick={() => setShowImportModal(false)} className="text-slate-400 hover:text-red-500 transition-colors"><X /></button>
+                        </header>
+                        
+                        <div className="space-y-4">
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Nombre del Carro/Kit</label>
+                                <input 
+                                    type="text"
+                                    value={importMetadata.name}
+                                    onChange={e => setImportMetadata({...importMetadata, name: e.target.value})}
+                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-primary/20 rounded-xl font-bold text-sm outline-none transition-all dark:text-white"
+                                    placeholder="Ej: CP-082 Especial"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Ubicación</label>
+                                <input 
+                                    type="text"
+                                    value={importMetadata.location}
+                                    onChange={e => setImportMetadata({...importMetadata, location: e.target.value})}
+                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-primary/20 rounded-xl font-bold text-sm outline-none transition-all dark:text-white"
+                                    placeholder="Ej: UCI Adultos"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Mes de Revisión (Trazabilidad)</label>
+                                <input 
+                                    type="text"
+                                    value={importMetadata.revision_month}
+                                    onChange={e => setImportMetadata({...importMetadata, revision_month: e.target.value})}
+                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-primary/20 rounded-xl font-bold text-sm outline-none transition-all dark:text-white"
+                                    placeholder="Ej: Marzo 2026"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="pt-4">
+                            <label className={`w-full flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-3xl transition-all cursor-pointer ${importMetadata.name ? 'border-primary/40 bg-primary/5 text-primary hover:bg-primary/10' : 'border-slate-200 text-slate-300 pointer-events-none'}`}>
+                                <Upload size={32} className="mb-2" />
+                                <span className="font-black text-xs uppercase tracking-widest text-center">
+                                    {importMetadata.name ? 'Seleccionar archivo CSV para finalizar' : 'Completa el nombre para continuar'}
+                                </span>
+                                {importMetadata.name && (
+                                    <input 
+                                        type="file" 
+                                        accept=".csv" 
+                                        className="hidden" 
+                                        onChange={async (e) => {
+                                            const file = e.target.files?.[0];
+                                            if (!file) return;
+                                            
+                                            // 1. Create the cart
+                                            const { data: cart, error: cErr } = await supabase
+                                                .from('master_carts')
+                                                .insert([importMetadata])
+                                                .select()
+                                                .single();
+                                            
+                                            if (cErr) {
+                                                alert('Error al crear el carro: ' + cErr.message);
+                                                return;
+                                            }
+
+                                            // 2. Trigger the template import for this new cart
+                                            setSelectedCartForItems(cart);
+                                            setShowImportModal(false);
+                                            setImportMetadata({ name: '', location: '', revision_month: '' });
+                                            
+                                            // Use handleTemplateCSV simulation or refactor it
+                                            const fakeEvent = { target: { files: [file] } } as any;
+                                            // Optimization: I'll need to make handleTemplateCSV accept the cart explicitly or wait for state
+                                            handleTemplateCSV(fakeEvent, cart);
+                                        }} 
+                                    />
+                                )}
+                            </label>
                         </div>
                     </div>
                 </div>

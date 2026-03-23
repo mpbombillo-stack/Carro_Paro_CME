@@ -61,6 +61,7 @@ export interface MasterCart {
     id: string;
     name: string;
     location: string;
+    revision_month?: string;
 }
 
 export interface CartItemTemplate {
