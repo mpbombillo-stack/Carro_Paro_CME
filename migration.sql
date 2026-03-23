@@ -84,3 +84,14 @@ CREATE TABLE IF NOT EXISTS master_users (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_master_users_name ON master_users(full_name);
+
+-- 7. Plantillas de Composición de Carros (CartItemTemplate)
+CREATE TABLE IF NOT EXISTS cart_items_template (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    cart_id UUID REFERENCES master_carts(id) ON DELETE CASCADE,
+    master_item_id UUID REFERENCES master_items(id) ON DELETE CASCADE,
+    standard_quantity INTEGER NOT NULL DEFAULT 1,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(cart_id, master_item_id)
+);
+CREATE INDEX IF NOT EXISTS idx_cart_template_cart ON cart_items_template(cart_id);

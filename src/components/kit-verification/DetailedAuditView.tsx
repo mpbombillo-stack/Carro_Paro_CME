@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { AuditVerificationData } from '../../types/audit';
 import { AuditHeaderForm } from './AuditHeaderForm';
 import { AuditDetailList } from './AuditDetailList';
@@ -20,6 +20,35 @@ export function DetailedAuditView({ data, onUpdate, onBack }: DetailedAuditViewP
     const handleHeaderUpdate = (header: any) => onUpdate({ ...data, header });
     const handleDetailsUpdate = (details: any) => onUpdate({ ...data, details });
     const handleCustodyUpdate = (custody: any) => onUpdate({ ...data, custody });
+    
+    // Auto-load template when cart is selected
+    useEffect(() => {
+        const loadTemplate = async () => {
+            if (data.header.id_carro && data.details.length === 0) {
+                const { data: template } = await supabase
+                    .from('cart_items_template')
+                    .select('*, master_items(*)')
+                    .eq('cart_id', data.header.id_carro);
+                
+                if (template && template.length > 0) {
+                    const initialDetails = template.map((t: any) => ({
+                        id: Math.random().toString(36).substr(2, 9),
+                        descripcion: t.master_items.description,
+                        cantidad_estandar: t.standard_quantity,
+                        cantidad_fisica: 0,
+                        lote: '',
+                        fecha_vencimiento_insumo: '',
+                        registro_sanitario: t.master_items.invima_registry,
+                        vencimiento_registro_sanitario: '',
+                        estado_conformidad: false
+                    }));
+                    handleDetailsUpdate(initialDetails);
+                }
+            }
+        };
+
+        loadTemplate();
+    }, [data.header.id_carro]);
 
     const handleExport = async () => {
         try {

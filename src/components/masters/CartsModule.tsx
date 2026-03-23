@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Trash2, Edit3, Truck, MapPin, PackageCheck } from 'lucide-react';
+import { Trash2, Edit3, Truck, MapPin, PackageCheck, Settings, Search, Plus, X, Upload } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import type { MasterCart } from '../../types/audit';
+import type { MasterCart, MasterItem, CartItemTemplate } from '../../types/audit';
 
 export const CartsModule: React.FC = () => {
     const [carts, setCarts] = useState<MasterCart[]>([]);
@@ -10,12 +10,24 @@ export const CartsModule: React.FC = () => {
         location: ''
     });
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [selectedCartForItems, setSelectedCartForItems] = useState<MasterCart | null>(null);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<string | null>(null);
+    
+    // For item template management
+    const [templateItems, setTemplateItems] = useState<(CartItemTemplate & { master_items: MasterItem })[]>([]);
+    const [masterItems, setMasterItems] = useState<MasterItem[]>([]);
+    const [searchItem, setSearchItem] = useState('');
 
     useEffect(() => {
         fetchCarts();
     }, []);
+
+    useEffect(() => {
+        if (selectedCartForItems) {
+            fetchTemplateItems(selectedCartForItems.id);
+        }
+    }, [selectedCartForItems]);
 
     const fetchCarts = async () => {
         try {
@@ -39,6 +51,74 @@ export const CartsModule: React.FC = () => {
             const saved = localStorage.getItem('master_carts');
             if (saved) setCarts(JSON.parse(saved));
         }
+    };
+
+    const fetchTemplateItems = async (cartId: string) => {
+        const { data } = await supabase
+            .from('cart_items_template')
+            .select('*, master_items(*)')
+            .eq('cart_id', cartId);
+        if (data) setTemplateItems(data as any);
+    };
+
+    const searchMasterItems = async (term: string) => {
+        const { data } = await supabase
+            .from('master_items')
+            .select('*')
+            .ilike('description', `%${term}%`)
+            .limit(5);
+        if (data) setMasterItems(data);
+    };
+
+    const addTemplateItem = async (cartId: string, masterItemId: string, qty: number) => {
+        const { error } = await supabase
+            .from('cart_items_template')
+            .upsert([{ cart_id: cartId, master_item_id: masterItemId, standard_quantity: qty }]);
+        
+        if (!error) fetchTemplateItems(cartId);
+        else alert('Error al agregar ítem: ' + error.message);
+    };
+
+    const removeTemplateItem = async (templateId: string) => {
+        await supabase.from('cart_items_template').delete().eq('id', templateId);
+        if (selectedCartForItems) fetchTemplateItems(selectedCartForItems.id);
+    };
+
+    const handleTemplateCSV = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !selectedCartForItems) return;
+
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            const text = event.target?.result as string;
+            setLoading(true);
+            const lines = text.split('\n');
+            
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                const [desc, qty] = line.split(',').map(p => p.trim());
+                
+                // Find item ID by description
+                const { data: item } = await supabase
+                    .from('master_items')
+                    .select('id')
+                    .ilike('description', desc)
+                    .single();
+                
+                if (item) {
+                    await supabase.from('cart_items_template').upsert([{
+                        cart_id: selectedCartForItems.id,
+                        master_item_id: item.id,
+                        standard_quantity: parseInt(qty) || 1
+                    }]);
+                }
+            }
+            fetchTemplateItems(selectedCartForItems.id);
+            setLoading(false);
+            setMessage('Plantilla actualizada');
+        };
+        reader.readAsText(file);
     };
 
     const handleSave = async (e: React.FormEvent) => {
@@ -157,10 +237,17 @@ export const CartsModule: React.FC = () => {
                                     </div>
                                 </div>
                                 <h4 className="text-xl font-black text-slate-800 dark:text-white leading-tight">{cart.name}</h4>
-                                <div className="mt-4 flex items-center gap-2 text-slate-500 font-bold text-xs uppercase tracking-wider">
+                                <div className="mt-2 flex items-center gap-2 text-slate-500 font-bold text-xs uppercase tracking-wider">
                                     <MapPin size={14} className="text-slate-400" />
                                     {cart.location}
                                 </div>
+                                <button 
+                                    onClick={() => setSelectedCartForItems(cart)}
+                                    className="mt-6 w-full flex items-center justify-center gap-2 py-3 bg-slate-50 dark:bg-slate-800 hover:bg-primary/5 hover:text-primary rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border border-transparent hover:border-primary/20"
+                                >
+                                    <Settings size={14} />
+                                    Configurar Ítems
+                                </button>
                             </div>
                         ))}
                         {carts.length === 0 && (
@@ -172,6 +259,97 @@ export const CartsModule: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Template Configuration Modal/Panel */}
+            {selectedCartForItems && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-white dark:bg-slate-900 w-full max-w-4xl max-h-[90vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+                        <header className="p-6 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+                            <div>
+                                <h3 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-3">
+                                    <Settings className="text-primary" /> Configurando: {selectedCartForItems.name}
+                                </h3>
+                                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">Lista Estándar de Insumos</p>
+                            </div>
+                            <button onClick={() => setSelectedCartForItems(null)} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-all text-slate-400 hover:text-red-500" title="Cerrar configuración"><X /></button>
+                        </header>
+
+                        <div className="flex-1 overflow-y-auto p-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            {/* Search and Add */}
+                            <div className="space-y-6">
+                                <div className="space-y-4">
+                                    <h4 className="text-xs font-black text-primary uppercase tracking-widest">Añadir Insumo desde Catálogo</h4>
+                                    <div className="relative group">
+                                        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" />
+                                        <input 
+                                            type="text"
+                                            placeholder="Buscar en el maestro..."
+                                            value={searchItem}
+                                            onChange={e => { setSearchItem(e.target.value); searchMasterItems(e.target.value); }}
+                                            className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-primary/20 rounded-2xl font-bold text-sm outline-none transition-all dark:text-white"
+                                        />
+                                    </div>
+                                    <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+                                        {masterItems.map(item => (
+                                            <button 
+                                                key={item.id}
+                                                onClick={() => addTemplateItem(selectedCartForItems.id, item.id, item.standard_quantity)}
+                                                className="w-full flex justify-between items-center p-4 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl hover:border-primary/30 transition-all group"
+                                            >
+                                                <div className="text-left">
+                                                    <p className="text-sm font-black text-slate-800 dark:text-white">{item.description}</p>
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase">{item.presentation}</p>
+                                                </div>
+                                                <Plus size={18} className="text-slate-300 group-hover:text-primary" />
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="pt-6 border-t border-slate-100 dark:border-slate-700">
+                                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Opciones Avanzadas</h4>
+                                    <label className="flex items-center justify-center gap-2 w-full py-4 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl text-slate-500 hover:text-primary hover:border-primary/30 hover:bg-primary/5 transition-all cursor-pointer font-black text-xs uppercase tracking-widest">
+                                        <Upload size={18} />
+                                        Cargar Composición (CSV)
+                                        <input type="file" accept=".csv" className="hidden" onChange={handleTemplateCSV} />
+                                    </label>
+                                    <p className="text-[9px] text-slate-400 mt-2 text-center">* Formato: Nombre del Item, Cantidad</p>
+                                </div>
+                            </div>
+
+                            {/* Current List */}
+                            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-6 border border-slate-200 dark:border-slate-700">
+                                <h4 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-widest mb-6 px-2">Composición Actual ({templateItems.length})</h4>
+                                <div className="space-y-3 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
+                                    {templateItems.map(item => (
+                                        <div key={item.id} className="flex justify-between items-center bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-all">
+                                            <div className="flex-1">
+                                                <p className="text-sm font-black text-slate-800 dark:text-white">{item.master_items.description}</p>
+                                                <div className="flex gap-4 mt-1">
+                                                    <p className="text-[10px] font-black text-primary uppercase tracking-widest">Cant: {item.standard_quantity}</p>
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase">{item.master_items.presentation}</p>
+                                                </div>
+                                            </div>
+                                            <button 
+                                                onClick={() => removeTemplateItem(item.id)}
+                                                className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                                                title="Eliminar de la plantilla"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    {templateItems.length === 0 && (
+                                        <div className="py-12 text-center text-slate-400">
+                                            <p className="text-xs font-bold uppercase tracking-widest">Sin ítems asignados</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

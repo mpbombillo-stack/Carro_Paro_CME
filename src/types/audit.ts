@@ -60,6 +60,13 @@ export interface MasterCart {
     location: string;
 }
 
+export interface CartItemTemplate {
+    id: string;
+    cart_id: string;
+    master_item_id: string;
+    standard_quantity: number;
+}
+
 export interface MasterUser {
     id: string;
     full_name: string;

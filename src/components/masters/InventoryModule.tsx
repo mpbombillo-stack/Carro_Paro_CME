@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Trash2, Edit3, Pill, PackageCheck, X } from 'lucide-react';
+import { Plus, Search, Trash2, Edit3, Pill, PackageCheck, X, Upload } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import type { MasterItem } from '../../types/audit';
 
@@ -134,6 +134,53 @@ export const InventoryModule: React.FC = () => {
         }
     };
 
+    const handleCSVImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            const text = event.target?.result as string;
+            if (!text) return;
+
+            setLoading(true);
+            const lines = text.split('\n');
+            const newItems: Partial<MasterItem>[] = [];
+
+            // Skip header if it exists
+            const startIdx = lines[0].toLowerCase().includes('desc') ? 1 : 0;
+
+            for (let i = startIdx; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                // Simple split by comma (assuming no commas in values or quoted values)
+                const parts = line.split(',').map(p => p.trim());
+                if (parts.length >= 3) {
+                    newItems.push({
+                        description: parts[0],
+                        presentation: parts[1] || '',
+                        invima_registry: parts[2] || 'PENDIENTE',
+                        standard_quantity: parseInt(parts[3]) || 1,
+                        category: parts[4] || 'Medicamento'
+                    });
+                }
+            }
+
+            if (newItems.length > 0) {
+                const { error } = await supabase.from('master_items').upsert(newItems);
+                if (error) {
+                    alert('Error al importar en base de datos: ' + error.message);
+                } else {
+                    setMessage(`Importados ${newItems.length} ítems`);
+                    fetchItems();
+                }
+            }
+            setLoading(false);
+        };
+        reader.readAsText(file);
+    };
+
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -211,6 +258,11 @@ export const InventoryModule: React.FC = () => {
                             </button>
                         )}
                     </div>
+                    <label className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-slate-200 transition-all cursor-pointer border border-transparent hover:border-slate-300">
+                        <Upload size={14} />
+                        IMPORTAR CSV
+                        <input type="file" accept=".csv" onChange={handleCSVImport} className="hidden" />
+                    </label>
                     {message && (
                         <div className="px-4 py-2 bg-blue-50 text-blue-600 rounded-xl text-xs font-black uppercase tracking-widest border border-blue-100 animate-bounce">
                             {message}
@@ -258,7 +310,7 @@ export const InventoryModule: React.FC = () => {
                                     )}
                                 </div>
                                 <datalist id="medications-list">
-                                    {PREDEFINED_MEDS.map((med, idx) => (
+                                    {PREDEFINED_MEDS.map((med: { description: string }, idx: number) => (
                                         <option key={idx} value={med.description} />
                                     ))}
                                 </datalist>
@@ -355,7 +407,7 @@ export const InventoryModule: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                {filteredItems.map(item => (
+                                {filteredItems.map((item: MasterItem) => (
                                     <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors group">
                                         <td className="py-4 px-6">
                                             <div className="flex items-center gap-3">
