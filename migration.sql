@@ -1,11 +1,12 @@
 -- Migration for Kit Verification (Carro de Paro) - Clínica Santillana
--- Status: Draft ISO ADT-SRF-FR-025
+-- Status: Production ISO ADT-SRF-FR-025
 
 -- 0. Institutional Settings
 CREATE TABLE IF NOT EXISTS ips_settings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL DEFAULT 'Clínica Santillana',
   logo_url TEXT,
+  config JSONB DEFAULT '{}'::jsonb,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -19,6 +20,14 @@ CREATE TABLE IF NOT EXISTS audit_headers (
   responsable_usuario TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Ensure columns exist if table was created previously
+DO $$ 
+BEGIN 
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='audit_headers' AND column_name='id_carro') THEN
+        ALTER TABLE audit_headers ADD COLUMN id_carro TEXT;
+    END IF;
+END $$;
 
 -- 2. Master Table for Items (Medicaments/Supplies)
 CREATE TABLE IF NOT EXISTS master_items (
