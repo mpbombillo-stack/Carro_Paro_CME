@@ -144,25 +144,33 @@ export const InventoryModule: React.FC = () => {
             if (!text) return;
 
             setLoading(true);
-            const lines = text.split('\n');
+            const lines = text.split(/\r?\n/).filter(line => line.trim());
+            if (lines.length === 0) {
+                setLoading(false);
+                return;
+            }
+
+            // Detect delimiter: count commas vs semicolons in first line
+            const firstLine = lines[0];
+            const commaCount = (firstLine.match(/,/g) || []).length;
+            const semiCount = (firstLine.match(/;/g) || []).length;
+            const delimiter = semiCount > commaCount ? ';' : ',';
+
             const newItems: Partial<MasterItem>[] = [];
 
-            // Skip header if it exists
-            const startIdx = lines[0].toLowerCase().includes('desc') ? 1 : 0;
+            // Detect if first line is a header
+            const headerKeywords = ['desc', 'item', 'nombre', 'present', 'regis', 'invima'];
+            const isHeader = headerKeywords.some(key => firstLine.toLowerCase().includes(key));
+            const startIdx = isHeader ? 1 : 0;
 
             for (let i = startIdx; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (!line) continue;
-
-                // Split by comma OR semicolon
-                const delimiter = line.includes(';') ? ';' : ',';
-                const parts = line.split(delimiter).map(p => p.trim());
-                if (parts.length >= 3) {
+                const parts = lines[i].split(delimiter).map(p => p.trim());
+                if (parts.length >= 1 && parts[0]) {
                     newItems.push({
                         description: parts[0],
                         presentation: parts[1] || '',
                         invima_registry: parts[2] || 'PENDIENTE',
-                        standard_quantity: parseInt(parts[3]) || 1,
+                        standard_quantity: parseInt(parts[3] || '1') || 1,
                         category: parts[4] || 'Medicamento'
                     });
                 }
@@ -171,13 +179,16 @@ export const InventoryModule: React.FC = () => {
             if (newItems.length > 0) {
                 const { error } = await supabase.from('master_items').upsert(newItems);
                 if (error) {
-                    alert('Error al importar en base de datos: ' + error.message);
+                    alert('Error al importar: ' + error.message);
                 } else {
-                    setMessage(`Importados ${newItems.length} ítems`);
+                    setMessage(`Importación finalizada: ${newItems.length} ítems procesados`);
                     fetchItems();
                 }
+            } else {
+                alert('No se encontraron datos válidos para importar en el archivo.');
             }
             setLoading(false);
+            e.target.value = ''; // Reset input
         };
         reader.readAsText(file);
     };

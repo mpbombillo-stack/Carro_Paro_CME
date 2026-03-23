@@ -91,34 +91,57 @@ export const CartsModule: React.FC = () => {
         const reader = new FileReader();
         reader.onload = async (event) => {
             const text = event.target?.result as string;
+            if (!text) return;
+
             setLoading(true);
-            const lines = text.split('\n');
-            
-            for (let i = 1; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (!line) continue;
-                
-                const delimiter = line.includes(';') ? ';' : ',';
-                const [desc, qty] = line.split(delimiter).map(p => p.trim());
-                
-                // Find item ID by description
-                const { data: item } = await supabase
-                    .from('master_items')
-                    .select('id')
-                    .ilike('description', desc)
-                    .single();
-                
-                if (item) {
-                    await supabase.from('cart_items_template').upsert([{
-                        cart_id: selectedCartForItems.id,
-                        master_item_id: item.id,
-                        standard_quantity: parseInt(qty?.replace(/[^0-9]/g, '') || '1') || 1
-                    }]);
+            const lines = text.split(/\r?\n/).filter(line => line.trim());
+            if (lines.length === 0) {
+                setLoading(false);
+                return;
+            }
+
+            // Detect delimiter: count commas vs semicolons in first line
+            const firstLine = lines[0];
+            const commaCount = (firstLine.match(/,/g) || []).length;
+            const semiCount = (firstLine.match(/;/g) || []).length;
+            const delimiter = semiCount > commaCount ? ';' : ',';
+
+            // Detect if first line is a header
+            const headerKeywords = ['desc', 'item', 'nombre', 'cant', 'qty'];
+            const isHeader = headerKeywords.some(key => firstLine.toLowerCase().includes(key));
+            const startIdx = isHeader ? 1 : 0;
+
+            let importedCount = 0;
+
+            for (let i = startIdx; i < lines.length; i++) {
+                const parts = lines[i].split(delimiter).map(p => p.trim());
+                if (parts.length >= 1 && parts[0]) {
+                    const desc = parts[0];
+                    const qtyStr = parts[1];
+                    
+                    // Find item ID by description
+                    const { data: item } = await supabase
+                        .from('master_items')
+                        .select('id')
+                        .ilike('description', desc)
+                        .maybeSingle();
+                    
+                    if (item) {
+                        const standard_quantity = parseInt(qtyStr?.replace(/[^0-9]/g, '') || '1') || 1;
+                        await supabase.from('cart_items_template').upsert([{
+                            cart_id: selectedCartForItems.id,
+                            master_item_id: item.id,
+                            standard_quantity
+                        }]);
+                        importedCount++;
+                    }
                 }
             }
+
             fetchTemplateItems(selectedCartForItems.id);
             setLoading(false);
-            setMessage('Plantilla actualizada');
+            setMessage(`Plantilla actualizada: ${importedCount} ítems vinculados`);
+            e.target.value = ''; // Reset input
         };
         reader.readAsText(file);
     };
