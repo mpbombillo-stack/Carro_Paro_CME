@@ -57,8 +57,17 @@ CREATE TABLE IF NOT EXISTS master_carts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   location TEXT NOT NULL,
+  revision_month TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Ensure revision_month exists if table was created previously
+DO $$ 
+BEGIN 
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='master_carts' AND column_name='revision_month') THEN
+        ALTER TABLE master_carts ADD COLUMN revision_month TEXT;
+    END IF;
+END $$;
 
 -- 4. Detalle del Ítem (AuditDetail)
 CREATE TABLE IF NOT EXISTS audit_details (
