@@ -41,7 +41,7 @@ export const AuditDetailList: React.FC<Props> = ({ details, onUpdate }) => {
 
     const handleAddItem = (master: MasterItem) => {
         const newItem: AuditDetail = {
-            id: 'NEW-' + Date.now(),
+            id: 'temp-' + Math.random().toString(36).substr(2, 9),
             audit_header_id: '',
             item_id: master.id,
             descripcion: master.description,

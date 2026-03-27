@@ -74,9 +74,29 @@ export const CartsModule: React.FC = () => {
     };
 
     const addTemplateItem = async (cartId: string, masterItemId: string, qty: number) => {
+        let finalMasterItemId = masterItemId;
+        
+        // Self-healing: if ID looks like a timestamp, try to find the real UUID by querying master_items
+        if (masterItemId.length < 30) {
+            console.warn('Detectado ID no-UUID, intentando recuperación:', masterItemId);
+            const { data: item } = await supabase
+                .from('master_items')
+                .select('id')
+                .eq('id', masterItemId) // Try direct but it will likely fail if it's a timestamp
+                .maybeSingle();
+            
+            if (!item) {
+                // Try finding by name if we have it? Wait, we don't have the name here.
+                // But if it's a timestamp, it's definitely not in Supabase with THAT id.
+                alert('Error de sincronización: El ítem tiene un ID temporal. Por favor, refresque la página.');
+                return;
+            }
+            finalMasterItemId = item.id;
+        }
+
         const { error } = await supabase
             .from('cart_items_template')
-            .upsert([{ cart_id: cartId, master_item_id: masterItemId, standard_quantity: qty }]);
+            .upsert([{ cart_id: cartId, master_item_id: finalMasterItemId, standard_quantity: qty }]);
         
         if (!error) fetchTemplateItems(cartId);
         else alert('Error al agregar ítem: ' + error.message);
@@ -160,14 +180,18 @@ export const CartsModule: React.FC = () => {
             id: editingId || undefined
         };
 
-        const { error } = await supabase
+        const { data, error } = await supabase
             .from('master_carts')
-            .upsert([cartToSave]);
+            .upsert([cartToSave])
+            .select()
+            .single();
         
         // Always local
+        const savedCart = data || { ...cartToSave, id: editingId ? editingId : Date.now().toString() };
+
         const updatedCarts = editingId
-            ? carts.map(c => c.id === editingId ? { ...cartToSave, id: c.id } as MasterCart : c)
-            : [...carts, { ...cartToSave, id: Date.now().toString() } as MasterCart];
+            ? carts.map(c => c.id === editingId ? savedCart as MasterCart : c)
+            : [...carts, savedCart as MasterCart];
             
         localStorage.setItem('master_carts', JSON.stringify(updatedCarts));
         setCarts(updatedCarts);

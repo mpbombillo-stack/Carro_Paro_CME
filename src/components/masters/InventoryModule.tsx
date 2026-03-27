@@ -204,12 +204,19 @@ export const InventoryModule: React.FC = () => {
         };
 
         // Try Supabase
-        const { error } = await supabase.from('master_items').upsert([itemToSave]);
+        const { data, error } = await supabase
+            .from('master_items')
+            .upsert([itemToSave])
+            .select()
+            .single();
 
         // Always update local for demo/fallback
+        // If Supabase call was successful, use the returned ID
+        const savedItem = data || { ...itemToSave, id: editingItem ? editingItem.id : Date.now().toString() };
+        
         const updatedItems = editingItem
-            ? items.map(i => i.id === editingItem.id ? { ...itemToSave, id: i.id } as MasterItem : i)
-            : [...items, { ...itemToSave, id: Date.now().toString() } as MasterItem];
+            ? items.map(i => i.id === editingItem.id ? savedItem as MasterItem : i)
+            : [...items, savedItem as MasterItem];
 
         localStorage.setItem('master_items', JSON.stringify(updatedItems));
         setItems(updatedItems);

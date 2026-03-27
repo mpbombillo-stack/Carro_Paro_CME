@@ -7,7 +7,7 @@ export const KitVerificationModule: React.FC = () => {
     const [view, setView] = useState<'list' | 'detail'>('list');
     const [auditData, setAuditData] = useState<AuditVerificationData>({
         header: {
-            id: 'AUD-' + Date.now(),
+            id: 'AUD-TEMP',
             fecha_hora_inicio: new Date().toISOString(),
             servicio_ubicacion: 'Urgencias',
             id_carro: 'CP-082',
@@ -18,7 +18,7 @@ export const KitVerificationModule: React.FC = () => {
             { id: '2', audit_header_id: '', descripcion: 'Amiodarona 150mg/3ml - Ampolla x 3ml', cantidad_fisica: 6, lote: 'XJ-99812', fecha_vencimiento_insumo: '2023-11-20', registro_sanitario: 'INVIMA 2015M-0082', vencimiento_registro_sanitario: '2025-05-12', estado_conformidad: false },
         ],
         custody: {
-            id: 'CUST-' + Date.now(),
+            id: 'CUST-TEMP',
             audit_header_id: '',
             serial_apertura: 'SANT-2026-X1',
             serial_cierre: '',
