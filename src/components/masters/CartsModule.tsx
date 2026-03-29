@@ -73,25 +73,37 @@ export const CartsModule: React.FC = () => {
         if (data) setMasterItems(data);
     };
 
-    const addTemplateItem = async (cartId: string, masterItemId: string, qty: number) => {
-        let finalMasterItemId = masterItemId;
+    const addTemplateItem = async (cartId: string, masterItem: MasterItem, qty: number) => {
+        let finalMasterItemId = String(masterItem.id);
         
-        // Self-healing: if ID looks like a timestamp, try to find the real UUID by querying master_items
-        if (masterItemId.length < 30) {
-            console.warn('Detectado ID no-UUID, intentando recuperación:', masterItemId);
-            const { data: item } = await supabase
+        // Self-healing: if ID looks like a timestamp, it's a local unsynced item. We must sync it.
+        if (finalMasterItemId.length < 30) {
+            console.warn('Detectado ID no-UUID, intentando recuperación:', masterItem.id);
+            // Search in Supabase by description and invima strictly
+            const { data: existingItem } = await supabase
                 .from('master_items')
                 .select('id')
-                .eq('id', masterItemId) // Try direct but it will likely fail if it's a timestamp
+                .eq('description', masterItem.description)
+                .eq('invima_registry', masterItem.invima_registry)
                 .maybeSingle();
-            
-            if (!item) {
-                // Try finding by name if we have it? Wait, we don't have the name here.
-                // But if it's a timestamp, it's definitely not in Supabase with THAT id.
-                alert('Error de sincronización: El ítem tiene un ID temporal. Por favor, refresque la página.');
-                return;
+
+            if (existingItem) {
+                finalMasterItemId = existingItem.id;
+            } else {
+                // Not found, so we create a real one in Supabase right now with a UUID
+                const newItem = { ...masterItem, id: crypto.randomUUID() };
+                const { data, error: insertError } = await supabase
+                    .from('master_items')
+                    .insert([newItem])
+                    .select()
+                    .single();
+                
+                if (insertError || !data) {
+                    alert('Error al sincronizar el insumo base: ' + (insertError?.message || 'Error desconocido'));
+                    return;
+                }
+                finalMasterItemId = data.id;
             }
-            finalMasterItemId = item.id;
         }
 
         const { error } = await supabase
@@ -373,7 +385,7 @@ export const CartsModule: React.FC = () => {
                                         {masterItems.map(item => (
                                             <button 
                                                 key={item.id}
-                                                onClick={() => addTemplateItem(selectedCartForItems.id, item.id, item.standard_quantity)}
+                                                onClick={() => addTemplateItem(selectedCartForItems.id, item, item.standard_quantity)}
                                                 className="w-full flex justify-between items-center p-4 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl hover:border-primary/30 transition-all group"
                                             >
                                                 <div className="text-left">
