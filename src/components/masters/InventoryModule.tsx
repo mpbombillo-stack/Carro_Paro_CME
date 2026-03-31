@@ -212,7 +212,7 @@ export const InventoryModule: React.FC = () => {
 
         // Always update local for demo/fallback
         // If Supabase call was successful, use the returned ID
-        const savedItem = data || { ...itemToSave, id: editingItem ? editingItem.id : Date.now().toString() };
+        const savedItem = data || { ...itemToSave, id: editingItem ? editingItem.id : crypto.randomUUID() };
         
         const updatedItems = editingItem
             ? items.map(i => i.id === editingItem.id ? savedItem as MasterItem : i)

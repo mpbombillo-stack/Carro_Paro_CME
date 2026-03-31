@@ -199,7 +199,7 @@ export const CartsModule: React.FC = () => {
             .single();
         
         // Always local
-        const savedCart = data || { ...cartToSave, id: editingId ? editingId : Date.now().toString() };
+        const savedCart = data || { ...cartToSave, id: editingId ? editingId : crypto.randomUUID() };
 
         const updatedCarts = editingId
             ? carts.map(c => c.id === editingId ? savedCart as MasterCart : c)

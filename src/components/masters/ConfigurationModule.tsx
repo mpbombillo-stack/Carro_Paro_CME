@@ -116,7 +116,7 @@ export const ConfigurationModule: React.FC = () => {
                     const idx = localUsers.findIndex(u => u.id === editingUser.id);
                     localUsers[idx] = { ...editingUser, ...payload } as MasterUser;
                 } else {
-                    localUsers.push({ ...payload, id: 'local-' + Date.now() } as MasterUser);
+                    localUsers.push({ ...payload, id: crypto.randomUUID() } as MasterUser);
                 }
                 localStorage.setItem('master_users', JSON.stringify(localUsers));
             }
