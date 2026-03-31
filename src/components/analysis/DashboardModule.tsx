@@ -7,10 +7,16 @@ import type { MasterUser } from '../../types/audit';
 export const DashboardModule: React.FC<{ user?: MasterUser }> = ({ user }) => {
     const [counts, setCounts] = useState({ audits: 0, alerts: 0, carts: 0 });
     const [recentActivity, setRecentActivity] = useState([
-        { user: 'Jefe María', action: 'Verificó CP-01', time: 'Hace 5 min' },
-        { user: 'Farm. Carlos', action: 'Ajustó stock Adrenalina', time: 'Hace 12 min' },
-        { user: 'Dr. Pedro', action: 'Firmó Auditoría #82', time: 'Hace 45 min' },
+        { id: '1', user: 'Jefe María', action: 'Verificó CP-01', time: 'Hace 5 min', details: 'Se completó la verificación del carro de paro 01 en Urgencias. Sin novedades ni elementos faltantes.' },
+        { id: '2', user: 'Farm. Carlos', action: 'Ajustó stock Adrenalina', time: 'Hace 12 min', details: 'Ajuste de inventario en bodega: Se repusieron 5 ampollas de Adrenalina 1mg por uso en emergencia cardiovascular.' },
+        { id: '3', user: 'Dr. Pedro', action: 'Firmó Auditoría #82', time: 'Hace 45 min', details: 'Firma electrónica verificada para el cierre de la auditoría mensual del área quirúrgica. Estado: Conforme.' },
     ]);
+    const [selectedActivity, setSelectedActivity] = useState<{id: string, user: string, action: string, time: string, details: string} | null>(null);
+
+    const removeActivity = (e: React.MouseEvent, actId: string) => {
+        e.stopPropagation();
+        setRecentActivity(prev => prev.filter(a => a.id !== actId));
+    };
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -94,16 +100,29 @@ export const DashboardModule: React.FC<{ user?: MasterUser }> = ({ user }) => {
                         </h4>
                         <div className="flex-1 space-y-6">
                             {recentActivity.length > 0 ? (
-                                recentActivity.map((act, i) => (
-                                    <div key={i} className="flex gap-4 group cursor-default">
-                                        <div className="size-10 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center justify-center text-[10px] font-black group-hover:bg-primary group-hover:text-white transition-colors duration-500">
-                                            {act.user.split(' ')[1]?.substring(0,2).toUpperCase() || '??'}
+                                recentActivity.map((act) => (
+                                    <div 
+                                        key={act.id} 
+                                        onClick={() => setSelectedActivity(act)}
+                                        className="flex gap-4 items-center group cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 p-2 -mx-2 rounded-2xl transition-all"
+                                    >
+                                        <div className="size-10 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center justify-center text-[10px] font-black group-hover:bg-primary group-hover:text-white transition-colors duration-500 shrink-0">
+                                            {act.user.split(' ')[1]?.substring(0,2).toUpperCase() || act.user.substring(0,2).toUpperCase()}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-xs font-black text-slate-700 dark:text-slate-200">{act.user}</p>
+                                            <p className="text-xs font-black text-slate-700 dark:text-slate-200 group-hover:text-primary transition-colors">{act.user}</p>
                                             <p className="text-[10px] font-bold text-slate-400 truncate mt-0.5">{act.action}</p>
                                         </div>
-                                        <span className="text-[8px] font-black text-slate-300 uppercase shrink-0 pt-0.5">{act.time}</span>
+                                        <div className="flex flex-col items-end shrink-0 gap-1 pt-0.5">
+                                            <span className="text-[8px] font-black text-slate-300 uppercase">{act.time}</span>
+                                            <button 
+                                                onClick={(e) => removeActivity(e, act.id)}
+                                                className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:text-slate-600 dark:hover:text-red-400 dark:hover:bg-red-900/30 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                                title="Eliminar actividad"
+                                            >
+                                                <Trash2 size={12} />
+                                            </button>
+                                        </div>
                                     </div>
                                 ))
                             ) : (
@@ -117,6 +136,51 @@ export const DashboardModule: React.FC<{ user?: MasterUser }> = ({ user }) => {
                     </div>
                 </div>
             </div>
+
+            {/* Modal de Detalle de Actividad */}
+            {selectedActivity && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-[32px] overflow-hidden shadow-2xl relative">
+                        <div className="p-8">
+                            <div className="flex justify-between items-start mb-4">
+                                <h3 className="text-xl font-black text-slate-800 dark:text-white">Detalle de Actividad</h3>
+                                <button 
+                                    onClick={() => setSelectedActivity(null)}
+                                    className="p-2 -mr-2 text-slate-400 hover:bg-slate-50 hover:text-slate-800 dark:hover:bg-slate-800 dark:hover:text-white transition-colors rounded-xl"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                            
+                            <div className="flex items-center gap-4 mt-6 mb-6">
+                                <div className="size-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center text-lg font-black shadow-inner shadow-primary/20">
+                                    {selectedActivity.user.substring(0,2).toUpperCase()}
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-sm font-black text-slate-800 dark:text-white">{selectedActivity.user}</p>
+                                    <p className="text-[10px] font-bold text-primary uppercase tracking-widest mt-1"><Clock size={10} className="inline mr-1"/>{selectedActivity.time}</p>
+                                </div>
+                            </div>
+
+                            <p className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-3">{selectedActivity.action}</p>
+                            <div className="bg-slate-50 dark:bg-slate-800/80 p-5 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-inner">
+                                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
+                                    {selectedActivity.details}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="p-6 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+                            <button
+                                onClick={() => setSelectedActivity(null)}
+                                className="px-6 py-3 bg-white dark:bg-slate-700 shadow-sm border border-slate-100 dark:border-slate-600 font-black text-[10px] text-slate-600 dark:text-slate-200 uppercase tracking-widest rounded-xl hover:shadow-lg transition-all"
+                            >
+                                Aceptar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
