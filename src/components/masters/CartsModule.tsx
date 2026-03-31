@@ -131,11 +131,11 @@ export const CartsModule: React.FC = () => {
         }
 
         let finalMasterItemId = String(masterItem.id);
+        const isItemUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(finalMasterItemId);
         
-        // Self-healing: if ID looks like a timestamp, it's a local unsynced item. We must sync it.
-        if (finalMasterItemId.length < 30) {
-            console.warn('Detectado ID no-UUID, intentando recuperación:', masterItem.id);
-            // Search in Supabase by description and invima strictly
+        // Self-healing: if ID is legacy numeric or offline UUID
+        if (!isItemUUID) {
+            console.warn('Detectado Item ID no-UUID, intentando recuperación:', masterItem.id);
             const { data: existingItem } = await supabase
                 .from('master_items')
                 .select('id')
@@ -146,7 +146,6 @@ export const CartsModule: React.FC = () => {
             if (existingItem) {
                 finalMasterItemId = existingItem.id;
             } else {
-                // Not found, so we create a real one in Supabase right now with a UUID
                 const newItem = { ...masterItem, id: crypto.randomUUID() };
                 const { data, error: insertError } = await supabase
                     .from('master_items')
@@ -159,6 +158,24 @@ export const CartsModule: React.FC = () => {
                     return;
                 }
                 finalMasterItemId = data.id;
+            }
+        } else {
+            // Check if UUID actually exists in Supabase (might be an offline ghost)
+            const { data: itemExists } = await supabase.from('master_items').select('id').eq('id', finalMasterItemId).maybeSingle();
+            if (!itemExists) {
+                console.warn('Insumo maestro existe localmente con UUID pero NO en Supabase. Sincronizando...');
+                const { error: itemInsErr } = await supabase.from('master_items').insert([{
+                    id: finalMasterItemId,
+                    description: masterItem.description,
+                    presentation: masterItem.presentation || '',
+                    invima_registry: masterItem.invima_registry || '',
+                    standard_quantity: masterItem.standard_quantity || 1,
+                    category: masterItem.category || ''
+                }]);
+                if (itemInsErr) {
+                    alert('Error resincronizando insumo offline: ' + itemInsErr.message);
+                    return;
+                }
             }
         }
 
