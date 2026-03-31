@@ -122,7 +122,10 @@ export const InventoryModule: React.FC = () => {
             // Fallback to local storage if Supabase fails or returns no data
             const saved = localStorage.getItem('master_items');
             if (saved) {
-                setItems(JSON.parse(saved));
+                const parsed = JSON.parse(saved);
+                const valid = parsed.filter((c: any) => typeof c.id === 'string' && c.id.length > 30);
+                if (valid.length !== parsed.length) localStorage.setItem('master_items', JSON.stringify(valid));
+                setItems(valid);
                 setMessage('Cargado desde almacenamiento local (Demo)');
             } else {
                 setItems([]);
@@ -130,7 +133,11 @@ export const InventoryModule: React.FC = () => {
         } catch (error) {
             console.error('Error fetching items:', error);
             const saved = localStorage.getItem('master_items');
-            if (saved) setItems(JSON.parse(saved));
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                const valid = parsed.filter((c: any) => typeof c.id === 'string' && c.id.length > 30);
+                setItems(valid);
+            }
         }
     };
 

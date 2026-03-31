@@ -47,12 +47,20 @@ export const CartsModule: React.FC = () => {
             // Local fallback
             const saved = localStorage.getItem('master_carts');
             if (saved) {
-                setCarts(JSON.parse(saved));
+                const parsed = JSON.parse(saved);
+                // Purge any corrupted legacy carts from the local database
+                const valid = parsed.filter((c: any) => typeof c.id === 'string' && c.id.length > 30);
+                if (valid.length !== parsed.length) localStorage.setItem('master_carts', JSON.stringify(valid));
+                setCarts(valid);
             }
         } catch (error) {
             console.error('Error fetching carts:', error);
             const saved = localStorage.getItem('master_carts');
-            if (saved) setCarts(JSON.parse(saved));
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                const valid = parsed.filter((c: any) => typeof c.id === 'string' && c.id.length > 30);
+                setCarts(valid);
+            }
         }
     };
 
@@ -73,8 +81,8 @@ export const CartsModule: React.FC = () => {
         if (data) setMasterItems(data);
     };
 
-    const addTemplateItem = async (cartId: string, masterItem: MasterItem, qty: number) => {
-        let finalCartId = cartId;
+    const addTemplateItem = async (cartId: string | number, masterItem: MasterItem, qty: number) => {
+        let finalCartId = String(cartId);
 
         // Self-healing for Cart ID
         if (finalCartId.length < 30) {
@@ -160,7 +168,7 @@ export const CartsModule: React.FC = () => {
 
             setLoading(true);
 
-            let finalCartId = cartToUse.id;
+            let finalCartId = String(cartToUse.id);
             if (finalCartId.length < 30) {
                 console.warn('Sincronizando carro antes de importar CSV...');
                 const { data: existing } = await supabase.from('master_carts').select('id').eq('name', cartToUse.name).maybeSingle();
