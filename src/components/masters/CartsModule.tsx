@@ -74,6 +74,35 @@ export const CartsModule: React.FC = () => {
     };
 
     const addTemplateItem = async (cartId: string, masterItem: MasterItem, qty: number) => {
+        let finalCartId = cartId;
+
+        // Self-healing for Cart ID
+        if (finalCartId.length < 30) {
+            console.warn('Detectado Cart ID no-UUID, sincronizando carro...');
+            const cartData = carts.find(c => c.id === cartId);
+            if (!cartData) return;
+            
+            const { data: existing } = await supabase.from('master_carts').select('id').eq('name', cartData.name).maybeSingle();
+            if (existing) {
+                finalCartId = existing.id;
+            } else {
+                const { data: newC } = await supabase.from('master_carts').insert([{ name: cartData.name, location: cartData.location, revision_month: cartData.revision_month }]).select().single();
+                if (!newC) {
+                    alert('Error: No se pudo sincronizar el carro con la base de datos central.');
+                    return;
+                }
+                finalCartId = newC.id;
+            }
+            
+            // Update local state instantly
+            const updated = carts.map(c => c.id === cartId ? { ...c, id: finalCartId } : c);
+            setCarts(updated);
+            localStorage.setItem('master_carts', JSON.stringify(updated));
+            if (selectedCartForItems?.id === cartId) {
+                setSelectedCartForItems({ ...cartData, id: finalCartId });
+            }
+        }
+
         let finalMasterItemId = String(masterItem.id);
         
         // Self-healing: if ID looks like a timestamp, it's a local unsynced item. We must sync it.
@@ -108,9 +137,9 @@ export const CartsModule: React.FC = () => {
 
         const { error } = await supabase
             .from('cart_items_template')
-            .upsert([{ cart_id: cartId, master_item_id: finalMasterItemId, standard_quantity: qty }]);
+            .upsert([{ cart_id: finalCartId, master_item_id: finalMasterItemId, standard_quantity: qty }]);
         
-        if (!error) fetchTemplateItems(cartId);
+        if (!error) fetchTemplateItems(finalCartId);
         else alert('Error al agregar ítem: ' + error.message);
     };
 
@@ -130,6 +159,30 @@ export const CartsModule: React.FC = () => {
             if (!text) return;
 
             setLoading(true);
+
+            let finalCartId = cartToUse.id;
+            if (finalCartId.length < 30) {
+                console.warn('Sincronizando carro antes de importar CSV...');
+                const { data: existing } = await supabase.from('master_carts').select('id').eq('name', cartToUse.name).maybeSingle();
+                if (existing) {
+                    finalCartId = existing.id;
+                } else {
+                    const { data: newC } = await supabase.from('master_carts').insert([{ name: cartToUse.name, location: cartToUse.location, revision_month: cartToUse.revision_month }]).select().single();
+                    if (!newC) {
+                        alert('Error: No se pudo sincronizar el carro con la base de datos.');
+                        setLoading(false);
+                        return;
+                    }
+                    finalCartId = newC.id;
+                }
+                const updated = carts.map(c => c.id === cartToUse.id ? { ...c, id: finalCartId } : c);
+                setCarts(updated);
+                localStorage.setItem('master_carts', JSON.stringify(updated));
+                if (selectedCartForItems?.id === cartToUse.id) {
+                    setSelectedCartForItems({ ...cartToUse, id: finalCartId });
+                }
+            }
+
             const lines = text.split(/\r?\n/).filter(line => line.trim());
             if (lines.length === 0) {
                 setLoading(false);
@@ -165,7 +218,7 @@ export const CartsModule: React.FC = () => {
                     if (item) {
                         const standard_quantity = parseInt(qtyStr?.replace(/[^0-9]/g, '') || '1') || 1;
                         await supabase.from('cart_items_template').upsert([{
-                            cart_id: cartToUse.id,
+                            cart_id: finalCartId,
                             master_item_id: item.id,
                             standard_quantity
                         }]);
@@ -174,7 +227,7 @@ export const CartsModule: React.FC = () => {
                 }
             }
 
-            fetchTemplateItems(cartToUse.id);
+            fetchTemplateItems(finalCartId);
             fetchCarts(); // Refresh list to show the new cart if it was just created
             setLoading(false);
             setMessage(`Carro "${cartToUse.name}" configurado: ${importedCount} ítems vinculados`);
@@ -187,9 +240,15 @@ export const CartsModule: React.FC = () => {
         e.preventDefault();
         setLoading(true);
         
+        // Final sanity check, offline carts with timestamp shouldn't use it for updates
+        let finalEditingId = editingId;
+        if (editingId && editingId.length < 30) {
+            finalEditingId = null; // Forces insert since it's an offline-only cart
+        }
+
         const cartToSave = {
             ...newCart,
-            id: editingId || undefined
+            id: finalEditingId || undefined
         };
 
         const { data, error } = await supabase
