@@ -6,16 +6,21 @@ import type { MasterUser } from '../../types/audit';
 
 export const DashboardModule: React.FC<{ user?: MasterUser }> = ({ user }) => {
     const [counts, setCounts] = useState({ audits: 0, alerts: 0, carts: 0 });
-    const [recentActivity, setRecentActivity] = useState([
-        { id: '1', user: 'Jefe María', action: 'Verificó CP-01', time: 'Hace 5 min', details: 'Se completó la verificación del carro de paro 01 en Urgencias. Sin novedades ni elementos faltantes.' },
-        { id: '2', user: 'Farm. Carlos', action: 'Ajustó stock Adrenalina', time: 'Hace 12 min', details: 'Ajuste de inventario en bodega: Se repusieron 5 ampollas de Adrenalina 1mg por uso en emergencia cardiovascular.' },
-        { id: '3', user: 'Dr. Pedro', action: 'Firmó Auditoría #82', time: 'Hace 45 min', details: 'Firma electrónica verificada para el cierre de la auditoría mensual del área quirúrgica. Estado: Conforme.' },
-    ]);
+    const [recentActivity, setRecentActivity] = useState<any[]>([]);
     const [selectedActivity, setSelectedActivity] = useState<{id: string, user: string, action: string, time: string, details: string} | null>(null);
 
     const removeActivity = (e: React.MouseEvent, actId: string) => {
         e.stopPropagation();
         setRecentActivity(prev => prev.filter(a => a.id !== actId));
+    };
+
+    const formatTimeAgo = (dateStr: string) => {
+        const diff = Math.floor((new Date().getTime() - new Date(dateStr).getTime()) / 60000); // en min
+        if (diff < 1) return 'Hace un momento';
+        if (diff < 60) return `Hace ${diff} min`;
+        const hrs = Math.floor(diff / 60);
+        if (hrs < 24) return `Hace ${hrs} hr${hrs > 1 ? 's' : ''}`;
+        return `Hace ${Math.floor(hrs / 24)} día${Math.floor(hrs / 24) > 1 ? 's' : ''}`;
     };
 
     useEffect(() => {
@@ -24,6 +29,23 @@ export const DashboardModule: React.FC<{ user?: MasterUser }> = ({ user }) => {
             const { data: alerts } = await supabase.from('audit_details').select('id').eq('estado_conformidad', false);
             const { count: cartsCount } = await supabase.from('master_carts').select('*', { count: 'exact', head: true });
 
+            const { data: recentAudits } = await supabase
+                .from('audit_headers')
+                .select('*')
+                .order('fecha_hora_fin', { ascending: false })
+                .limit(10);
+
+            if (recentAudits) {
+                const activities = recentAudits.map(audit => ({
+                    id: audit.id,
+                    user: audit.responsable_usuario || 'Usuario de Sistema',
+                    action: `Verificó el carro ${audit.id_carro}`,
+                    time: formatTimeAgo(audit.fecha_hora_fin || audit.fecha_hora_inicio),
+                    details: `Se completó y firmó electrónicamente la auditoría / revisión del carro de paro (${audit.id_carro}) en el servicio de ${audit.servicio_ubicacion}.`
+                }));
+                setRecentActivity(activities);
+            }
+
             setCounts({
                 audits: auditsCount || 0,
                 alerts: alerts?.length || 0,
@@ -31,6 +53,10 @@ export const DashboardModule: React.FC<{ user?: MasterUser }> = ({ user }) => {
             });
         };
         fetchDashboardData();
+        
+        // Polling activity cada minuto (opcional para mantener "hace X min" fresco)
+        const interval = setInterval(fetchDashboardData, 60000);
+        return () => clearInterval(interval);
     }, []);
 
     return (
