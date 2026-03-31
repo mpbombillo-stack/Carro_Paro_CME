@@ -69,6 +69,8 @@ export interface CartItemTemplate {
     cart_id: string;
     master_item_id: string;
     standard_quantity: number;
+    lote?: string;
+    fecha_vencimiento_insumo?: string;
 }
 
 export interface MasterUser {

@@ -120,7 +120,9 @@ CREATE TABLE IF NOT EXISTS cart_items_template (
     cart_id UUID REFERENCES master_carts(id) ON DELETE CASCADE,
     master_item_id UUID REFERENCES master_items(id) ON DELETE CASCADE,
     standard_quantity INTEGER NOT NULL DEFAULT 1,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    UNIQUE(cart_id, master_item_id)
+    lote TEXT DEFAULT '',
+    fecha_vencimiento_insumo DATE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+ALTER TABLE cart_items_template DROP CONSTRAINT IF EXISTS cart_items_template_cart_id_master_item_id_key;
 CREATE INDEX IF NOT EXISTS idx_cart_template_cart ON cart_items_template(cart_id);

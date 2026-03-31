@@ -181,10 +181,24 @@ export const CartsModule: React.FC = () => {
 
         const { error } = await supabase
             .from('cart_items_template')
-            .upsert([{ cart_id: finalCartId, master_item_id: finalMasterItemId, standard_quantity: qty }]);
+            .insert([{ cart_id: finalCartId, master_item_id: finalMasterItemId, standard_quantity: qty }]);
         
         if (!error) fetchTemplateItems(finalCartId);
-        else alert('Error al agregar ítem: ' + error.message);
+        else alert('Error al agregar ítem (recuerde correr el SQL para permitir duplicados): ' + error.message);
+    };
+
+    const updateTemplateItem = async (id: string, field: string, value: string | number) => {
+        const { error } = await supabase
+            .from('cart_items_template')
+            .update({ [field]: value })
+            .eq('id', id);
+        
+        if (!error && selectedCartForItems) {
+            // Optimistic update locally for smoothness
+            setTemplateItems(prev => prev.map(item => item.id === id ? { ...item, [field]: value } : item));
+        } else if (error) {
+            alert('Error actualizando ítem: ' + error.message);
+        }
     };
 
     const removeTemplateItem = async (templateId: string) => {
@@ -273,7 +287,7 @@ export const CartsModule: React.FC = () => {
                     
                     if (item) {
                         const standard_quantity = parseInt(qtyStr?.replace(/[^0-9]/g, '') || '1') || 1;
-                        await supabase.from('cart_items_template').upsert([{
+                        await supabase.from('cart_items_template').insert([{
                             cart_id: finalCartId,
                             master_item_id: item.id,
                             standard_quantity
@@ -532,17 +546,42 @@ export const CartsModule: React.FC = () => {
                                         <div key={item.id} className="flex justify-between items-center bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-all">
                                             <div className="flex-1">
                                                 <p className="text-sm font-black text-slate-800 dark:text-white">{item.master_items.description}</p>
-                                                <div className="flex gap-4 mt-1">
-                                                    <p className="text-[10px] font-black text-primary uppercase tracking-widest">Cant: {item.standard_quantity}</p>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase">{item.master_items.presentation}</p>
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase">{item.master_items.presentation}</p>
+                                                
+                                                <div className="flex flex-wrap gap-2 mt-2">
+                                                    <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800 p-1 rounded-lg">
+                                                        <span className="text-[10px] font-black text-slate-400 uppercase pl-1">Cant:</span>
+                                                        <input 
+                                                            type="number" 
+                                                            title="Cantidad"
+                                                            value={item.standard_quantity}
+                                                            onChange={e => updateTemplateItem(item.id, 'standard_quantity', parseInt(e.target.value) || 1)}
+                                                            className="w-12 bg-transparent border-none text-xs font-black text-primary outline-none text-center"
+                                                        />
+                                                    </div>
+                                                    <input 
+                                                        type="text" 
+                                                        placeholder="LOTE / SERIE"
+                                                        title="Lote o Serie"
+                                                        value={item.lote || ''}
+                                                        onChange={e => updateTemplateItem(item.id, 'lote', e.target.value)}
+                                                        className="w-24 bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-2 py-1 text-[10px] font-bold outline-none ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-primary"
+                                                    />
+                                                    <input 
+                                                        type="date" 
+                                                        title="Fecha de Vencimiento"
+                                                        value={item.fecha_vencimiento_insumo || ''}
+                                                        onChange={e => updateTemplateItem(item.id, 'fecha_vencimiento_insumo', e.target.value)}
+                                                        className="bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-2 py-1 text-[10px] font-bold outline-none ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-primary"
+                                                    />
                                                 </div>
                                             </div>
                                             <button 
                                                 onClick={() => removeTemplateItem(item.id)}
-                                                className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                                                className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all self-center ml-2"
                                                 title="Eliminar de la plantilla"
                                             >
-                                                <Trash2 size={16} />
+                                                <Trash2 size={18} />
                                             </button>
                                         </div>
                                     ))}

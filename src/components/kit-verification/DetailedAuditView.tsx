@@ -43,8 +43,8 @@ export function DetailedAuditView({ data, onUpdate, onBack }: DetailedAuditViewP
                         descripcion: t.master_items.description,
                         cantidad_estandar: t.standard_quantity,
                         cantidad_fisica: 0,
-                        lote: '',
-                        fecha_vencimiento_insumo: '',
+                        lote: t.lote || '',
+                        fecha_vencimiento_insumo: t.fecha_vencimiento_insumo || '',
                         registro_sanitario: t.master_items.invima_registry,
                         vencimiento_registro_sanitario: '',
                         estado_conformidad: false
