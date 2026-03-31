@@ -83,13 +83,14 @@ export const CartsModule: React.FC = () => {
 
     const addTemplateItem = async (cartId: string | number, masterItem: MasterItem, qty: number) => {
         let finalCartId = String(cartId);
+        const cartData = carts.find(c => String(c.id) === finalCartId);
+        if (!cartData) return;
 
-        // Self-healing for Cart ID
-        if (finalCartId.length < 30) {
+        // Validar si es un UUID oficial
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(finalCartId);
+
+        if (!isUUID) {
             console.warn('Detectado Cart ID no-UUID, sincronizando carro...');
-            const cartData = carts.find(c => c.id === cartId);
-            if (!cartData) return;
-            
             const { data: existing } = await supabase.from('master_carts').select('id').eq('name', cartData.name).maybeSingle();
             if (existing) {
                 finalCartId = existing.id;
@@ -101,12 +102,30 @@ export const CartsModule: React.FC = () => {
                 }
                 finalCartId = newC.id;
             }
+        } else {
+            // Verificar que realmente existe en Supabase (por si fue creado offline con un UUID virtual)
+            const { data: exists } = await supabase.from('master_carts').select('id').eq('id', finalCartId).maybeSingle();
+            if (!exists) {
+                console.warn('Carro local con UUID virtual no existe en nube. Insertando ahora...');
+                const { error: insErr } = await supabase.from('master_carts').insert([{ 
+                    id: finalCartId, 
+                    name: cartData.name, 
+                    location: cartData.location, 
+                    revision_month: cartData.revision_month 
+                }]);
+                if (insErr) {
+                    alert('Error resincronizando carro offline: ' + insErr.message);
+                    return;
+                }
+            }
+        }
             
-            // Update local state instantly
-            const updated = carts.map(c => c.id === cartId ? { ...c, id: finalCartId } : c);
+        // Update local state si el ID cambió
+        if (finalCartId !== String(cartId)) {
+            const updated = carts.map(c => String(c.id) === String(cartId) ? { ...c, id: finalCartId } : c);
             setCarts(updated);
             localStorage.setItem('master_carts', JSON.stringify(updated));
-            if (selectedCartForItems?.id === cartId) {
+            if (selectedCartForItems && String(selectedCartForItems.id) === String(cartId)) {
                 setSelectedCartForItems({ ...cartData, id: finalCartId });
             }
         }
@@ -169,7 +188,9 @@ export const CartsModule: React.FC = () => {
             setLoading(true);
 
             let finalCartId = String(cartToUse.id);
-            if (finalCartId.length < 30) {
+            const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(finalCartId);
+
+            if (!isUUID) {
                 console.warn('Sincronizando carro antes de importar CSV...');
                 const { data: existing } = await supabase.from('master_carts').select('id').eq('name', cartToUse.name).maybeSingle();
                 if (existing) {
@@ -183,10 +204,20 @@ export const CartsModule: React.FC = () => {
                     }
                     finalCartId = newC.id;
                 }
-                const updated = carts.map(c => c.id === cartToUse.id ? { ...c, id: finalCartId } : c);
+            } else {
+                const { data: exists } = await supabase.from('master_carts').select('id').eq('id', finalCartId).maybeSingle();
+                if (!exists) {
+                    await supabase.from('master_carts').insert([{ 
+                        id: finalCartId, name: cartToUse.name, location: cartToUse.location, revision_month: cartToUse.revision_month 
+                    }]);
+                }
+            }
+
+            if (finalCartId !== String(cartToUse.id)) {
+                const updated = carts.map(c => String(c.id) === String(cartToUse.id) ? { ...c, id: finalCartId } : c);
                 setCarts(updated);
                 localStorage.setItem('master_carts', JSON.stringify(updated));
-                if (selectedCartForItems?.id === cartToUse.id) {
+                if (selectedCartForItems && String(selectedCartForItems.id) === String(cartToUse.id)) {
                     setSelectedCartForItems({ ...cartToUse, id: finalCartId });
                 }
             }
