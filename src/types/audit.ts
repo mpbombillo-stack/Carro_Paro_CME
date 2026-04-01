@@ -71,6 +71,9 @@ export interface CartItemTemplate {
     standard_quantity: number;
     lote?: string;
     fecha_vencimiento_insumo?: string;
+    registro_sanitario?: string;
+    vencimiento_registro_sanitario?: string;
+    master_item?: any;
 }
 
 export interface MasterUser {

@@ -14,10 +14,23 @@ export const AuditHeaderForm: React.FC<Props> = ({ header, onUpdate }) => {
     useEffect(() => {
         const fetchCarts = async () => {
             const { data } = await supabase.from('master_carts').select('*');
-            if (data) setCarts(data);
+            if (data) {
+                setCarts(data);
+                // Pre-fill location and name automatically if Dashboard passed the cart_id
+                if (header.cart_id && !header.id_carro) {
+                    const matched = data.find(c => c.id === header.cart_id);
+                    if (matched) {
+                        onUpdate({
+                            ...header,
+                            id_carro: matched.name,
+                            servicio_ubicacion: matched.location
+                        });
+                    }
+                }
+            }
         };
         fetchCarts();
-    }, []);
+    }, [header.cart_id, header.id_carro]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;

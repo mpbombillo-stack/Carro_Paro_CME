@@ -30,11 +30,11 @@ function App() {
       case 'config':
         return <ConfigurationModule />;
       case 'dashboard':
-        return <DashboardModule user={DEFAULT_USER} />;
+        return <DashboardModule user={DEFAULT_USER} onNavigate={(tab: any) => setActiveTab(tab)} />;
       case 'reportes':
         return <ReportsModule />;
       default:
-        return <DashboardModule user={DEFAULT_USER} />;
+        return <DashboardModule user={DEFAULT_USER} onNavigate={(tab: any) => setActiveTab(tab)} />;
     }
   };
 

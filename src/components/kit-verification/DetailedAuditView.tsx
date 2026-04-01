@@ -45,8 +45,8 @@ export function DetailedAuditView({ data, onUpdate, onBack }: DetailedAuditViewP
                         cantidad_fisica: 0,
                         lote: t.lote || '',
                         fecha_vencimiento_insumo: t.fecha_vencimiento_insumo || '',
-                        registro_sanitario: t.master_items.invima_registry,
-                        vencimiento_registro_sanitario: '',
+                        registro_sanitario: t.registro_sanitario || t.master_items.invima_registry || '',
+                        vencimiento_registro_sanitario: t.vencimiento_registro_sanitario || '',
                         estado_conformidad: false
                     }));
                     handleDetailsUpdate(initialDetails);

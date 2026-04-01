@@ -122,7 +122,20 @@ CREATE TABLE IF NOT EXISTS cart_items_template (
     standard_quantity INTEGER NOT NULL DEFAULT 1,
     lote TEXT DEFAULT '',
     fecha_vencimiento_insumo DATE,
+    registro_sanitario TEXT DEFAULT '',
+    vencimiento_registro_sanitario DATE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ALTER TABLE cart_items_template DROP CONSTRAINT IF EXISTS cart_items_template_cart_id_master_item_id_key;
 CREATE INDEX IF NOT EXISTS idx_cart_template_cart ON cart_items_template(cart_id);
+
+-- Ensure new support fields exist on template if table was created previously
+DO $$ 
+BEGIN 
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='cart_items_template' AND column_name='registro_sanitario') THEN
+        ALTER TABLE cart_items_template ADD COLUMN registro_sanitario TEXT DEFAULT '';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='cart_items_template' AND column_name='vencimiento_registro_sanitario') THEN
+        ALTER TABLE cart_items_template ADD COLUMN vencimiento_registro_sanitario DATE;
+    END IF;
+END $$;

@@ -20,11 +20,39 @@ export const KitVerificationModule: React.FC = () => {
         custody: {
             id: 'CUST-TEMP',
             audit_header_id: '',
-            serial_apertura: 'SANT-2026-X1',
+            serial_apertura: '',
             serial_cierre: '',
             motivo_apertura: 'Revisión Rutinaria'
         }
     });
+
+    React.useEffect(() => {
+        const targetCart = localStorage.getItem('targetAuditCart');
+        if (targetCart) {
+            localStorage.removeItem('targetAuditCart');
+            
+            // Re-initialize for new audit targeting the specific cart
+            setAuditData({
+                header: {
+                    id: 'AUD-TEMP',
+                    fecha_hora_inicio: new Date().toISOString(),
+                    servicio_ubicacion: '',
+                    id_carro: '',
+                    cart_id: targetCart,
+                    responsable_usuario: 'Auditor Actual'
+                },
+                details: [],
+                custody: {
+                    id: 'CUST-TEMP',
+                    audit_header_id: '',
+                    serial_apertura: '',
+                    serial_cierre: '',
+                    motivo_apertura: 'Revisión Rutinaria'
+                }
+            });
+            setView('detail');
+        }
+    }, []);
 
     if (view === 'detail') {
         return (

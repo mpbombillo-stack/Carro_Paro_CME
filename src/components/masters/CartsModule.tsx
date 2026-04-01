@@ -549,32 +549,51 @@ export const CartsModule: React.FC = () => {
                                                 <p className="text-sm font-black text-slate-800 dark:text-white">{item.master_items.description}</p>
                                                 <p className="text-[10px] font-bold text-slate-400 uppercase">{item.master_items.presentation}</p>
                                                 
-                                                <div className="flex flex-wrap gap-2 mt-2">
-                                                    <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800 p-1 rounded-lg">
-                                                        <span className="text-[10px] font-black text-slate-400 uppercase pl-1">Cant:</span>
+                                                <div className="flex flex-col gap-2 mt-2">
+                                                    <div className="flex flex-wrap gap-2">
+                                                        <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800 p-1 rounded-lg shrink-0">
+                                                            <span className="text-[10px] font-black text-slate-400 uppercase pl-1">Cant:</span>
+                                                            <input 
+                                                                type="number" 
+                                                                title="Cantidad"
+                                                                value={item.standard_quantity}
+                                                                onChange={e => updateTemplateItem(item.id, 'standard_quantity', parseInt(e.target.value) || 1)}
+                                                                className="w-12 bg-transparent border-none text-xs font-black text-primary outline-none text-center"
+                                                            />
+                                                        </div>
                                                         <input 
-                                                            type="number" 
-                                                            title="Cantidad"
-                                                            value={item.standard_quantity}
-                                                            onChange={e => updateTemplateItem(item.id, 'standard_quantity', parseInt(e.target.value) || 1)}
-                                                            className="w-12 bg-transparent border-none text-xs font-black text-primary outline-none text-center"
+                                                            type="text" 
+                                                            placeholder="LOTE / SERIE"
+                                                            title="Lote o Serie"
+                                                            value={item.lote || ''}
+                                                            onChange={e => updateTemplateItem(item.id, 'lote', e.target.value)}
+                                                            className="w-24 bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-2 py-1 text-[10px] font-bold outline-none ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-primary flex-1 min-w-[100px]"
+                                                        />
+                                                        <input 
+                                                            type="date" 
+                                                            title="Fecha de Vencimiento de Lote"
+                                                            value={item.fecha_vencimiento_insumo || ''}
+                                                            onChange={e => updateTemplateItem(item.id, 'fecha_vencimiento_insumo', e.target.value)}
+                                                            className="bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-2 py-1 text-[10px] font-bold outline-none ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-primary shrink-0"
                                                         />
                                                     </div>
-                                                    <input 
-                                                        type="text" 
-                                                        placeholder="LOTE / SERIE"
-                                                        title="Lote o Serie"
-                                                        value={item.lote || ''}
-                                                        onChange={e => updateTemplateItem(item.id, 'lote', e.target.value)}
-                                                        className="w-24 bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-2 py-1 text-[10px] font-bold outline-none ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-primary"
-                                                    />
-                                                    <input 
-                                                        type="date" 
-                                                        title="Fecha de Vencimiento"
-                                                        value={item.fecha_vencimiento_insumo || ''}
-                                                        onChange={e => updateTemplateItem(item.id, 'fecha_vencimiento_insumo', e.target.value)}
-                                                        className="bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-2 py-1 text-[10px] font-bold outline-none ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-primary"
-                                                    />
+                                                    <div className="flex flex-wrap gap-2">
+                                                        <input 
+                                                            type="text" 
+                                                            placeholder="REGISTRO INVIMA"
+                                                            title="Registro Sanitario"
+                                                            value={item.registro_sanitario || ''}
+                                                            onChange={e => updateTemplateItem(item.id, 'registro_sanitario', e.target.value)}
+                                                            className="w-32 bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-2 py-1 text-[10px] font-bold outline-none ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-primary flex-1 min-w-[120px]"
+                                                        />
+                                                        <input 
+                                                            type="date" 
+                                                            title="Vigencia del Registro Sanitario"
+                                                            value={item.vencimiento_registro_sanitario || ''}
+                                                            onChange={e => updateTemplateItem(item.id, 'vencimiento_registro_sanitario', e.target.value)}
+                                                            className="bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-2 py-1 text-[10px] font-bold outline-none ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-primary shrink-0"
+                                                        />
+                                                    </div>
                                                 </div>
                                             </div>
                                             <button 
