@@ -8,11 +8,12 @@ import {
     Settings, 
     Bell, 
     Search,
-    ShieldCheck
+    ShieldCheck,
+    Lock
 } from 'lucide-react';
 import type { MasterUser } from '../../types/audit';
 
-export type DashboardTab = 'dashboard' | 'carros' | 'inventario' | 'reportes' | 'auditorias' | 'config';
+export type DashboardTab = 'dashboard' | 'carros' | 'inventario' | 'reportes' | 'auditorias' | 'trazabilidad' | 'config';
 
 interface DashboardLayoutProps {
     children: ReactNode;
@@ -27,8 +28,9 @@ export function DashboardLayout({ children, headerActions, activeTab, onTabChang
         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, section: 'Gestión' },
         { id: 'carros', label: 'Carros de Paro', icon: Truck, section: 'Gestión' },
         { id: 'inventario', label: 'Inventario Central', icon: PackageSearch, section: 'Gestión' },
-        { id: 'reportes', label: 'Reportes', icon: BarChart3, section: 'Análisis' },
         { id: 'auditorias', label: 'Auditorías', icon: ClipboardCheck, section: 'Análisis' },
+        { id: 'trazabilidad', label: 'Trazabilidad Candados', icon: Lock, section: 'Análisis' },
+        { id: 'reportes', label: 'Reportes', icon: BarChart3, section: 'Análisis' },
         { id: 'config', label: 'Configuración', icon: Settings, section: 'Análisis' },
     ];
 

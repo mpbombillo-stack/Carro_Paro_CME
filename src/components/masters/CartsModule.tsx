@@ -491,6 +491,9 @@ export const CartsModule: React.FC = () => {
                                 <h3 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-3">
                                     <Settings className="text-primary" /> Configurando: {selectedCartForItems.name}
                                 </h3>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                                    CÓDIGO: ADT-SRF-FR-025 version 2
+                                </p>
                                 <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">Lista Estándar de Insumos</p>
                             </div>
                             <button onClick={() => setSelectedCartForItems(null)} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-all text-slate-400 hover:text-red-500" title="Cerrar configuración"><X /></button>
@@ -539,76 +542,87 @@ export const CartsModule: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Current List */}
-                            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-6 border border-slate-200 dark:border-slate-700">
-                                <h4 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-widest mb-6 px-2">Composición Actual ({templateItems.length})</h4>
-                                <div className="space-y-3 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
-                                    {templateItems.map(item => (
-                                        <div key={item.id} className="flex justify-between items-center bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-all">
-                                            <div className="flex-1">
-                                                <p className="text-sm font-black text-slate-800 dark:text-white">{item.master_items.description}</p>
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase">{item.master_items.presentation}</p>
-                                                
-                                                <div className="flex flex-col gap-2 mt-2">
-                                                    <div className="flex flex-wrap gap-2">
-                                                        <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800 p-1 rounded-lg shrink-0">
-                                                            <span className="text-[10px] font-black text-slate-400 uppercase pl-1">Cant:</span>
-                                                            <input 
-                                                                type="number" 
-                                                                title="Cantidad"
-                                                                value={item.standard_quantity}
-                                                                onChange={e => updateTemplateItem(item.id, 'standard_quantity', parseInt(e.target.value) || 1)}
-                                                                className="w-12 bg-transparent border-none text-xs font-black text-primary outline-none text-center"
-                                                            />
-                                                        </div>
+                            {/* Current List Table Layout */}
+                            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-6 border border-slate-200 dark:border-slate-700 col-span-1 lg:col-span-2 overflow-hidden flex flex-col h-[500px]">
+                                <h4 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-widest mb-4 px-2">Composición Actual ({templateItems.length})</h4>
+                                <div className="flex-1 overflow-auto custom-scrollbar bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800">
+                                    <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-left text-xs">
+                                        <thead className="sticky top-0 bg-slate-100 dark:bg-slate-800 z-10">
+                                            <tr className="text-[10px] font-black uppercase text-slate-500 tracking-widest">
+                                                <th className="px-4 py-3">Nombre</th>
+                                                <th className="px-2 py-3">Presentación</th>
+                                                <th className="px-2 py-3 text-center">Cantidad</th>
+                                                <th className="px-2 py-3">F.V</th>
+                                                <th className="px-2 py-3">Lote</th>
+                                                <th className="px-2 py-3">Invima</th>
+                                                <th className="px-2 py-3">Venc. Registro</th>
+                                                <th className="px-4 py-3 text-center"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                            {templateItems.map(item => (
+                                                <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                                    <td className="px-4 py-3 font-black text-slate-800 dark:text-white">{item.master_items.description}</td>
+                                                    <td className="px-2 py-3 font-bold text-slate-500 uppercase">{item.master_items.presentation || 'N/A'}</td>
+                                                    <td className="px-2 py-3">
                                                         <input 
-                                                            type="text" 
-                                                            placeholder="LOTE / SERIE"
-                                                            title="Lote o Serie"
-                                                            value={item.lote || ''}
-                                                            onChange={e => updateTemplateItem(item.id, 'lote', e.target.value)}
-                                                            className="w-24 bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-2 py-1 text-[10px] font-bold outline-none ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-primary flex-1 min-w-[100px]"
+                                                            type="number" 
+                                                            value={item.standard_quantity}
+                                                            onChange={e => updateTemplateItem(item.id, 'standard_quantity', parseInt(e.target.value) || 1)}
+                                                            className="w-16 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-center font-black text-primary outline-none focus:ring-2 focus:ring-primary/20 py-2 mx-auto block"
                                                         />
+                                                    </td>
+                                                    <td className="px-2 py-3">
                                                         <input 
                                                             type="text" 
                                                             placeholder="DD/MM/AAAA"
-                                                            title="Fecha de Vencimiento de Lote"
                                                             value={item.fecha_vencimiento_insumo || ''}
                                                             onChange={e => updateTemplateItem(item.id, 'fecha_vencimiento_insumo', e.target.value)}
-                                                            className="bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-2 py-1 text-[10px] font-bold outline-none ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-primary shrink-0 w-24"
+                                                            className="w-24 bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-2 py-2 font-bold outline-none focus:ring-2 focus:ring-primary/20"
                                                         />
-                                                    </div>
-                                                    <div className="flex flex-wrap gap-2">
+                                                    </td>
+                                                    <td className="px-2 py-3">
                                                         <input 
                                                             type="text" 
-                                                            placeholder="REGISTRO INVIMA"
-                                                            title="Registro Sanitario"
+                                                            placeholder="Lote"
+                                                            value={item.lote || ''}
+                                                            onChange={e => updateTemplateItem(item.id, 'lote', e.target.value)}
+                                                            className="w-20 bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-2 py-2 font-bold outline-none focus:ring-2 focus:ring-primary/20"
+                                                        />
+                                                    </td>
+                                                    <td className="px-2 py-3">
+                                                        <input 
+                                                            type="text" 
+                                                            placeholder="INVIMA..."
                                                             value={item.registro_sanitario || ''}
                                                             onChange={e => updateTemplateItem(item.id, 'registro_sanitario', e.target.value)}
-                                                            className="w-32 bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-2 py-1 text-[10px] font-bold outline-none ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-primary flex-1 min-w-[120px]"
+                                                            className="w-24 bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-2 py-2 font-bold outline-none focus:ring-2 focus:ring-primary/20 uppercase"
                                                         />
+                                                    </td>
+                                                    <td className="px-2 py-3">
                                                         <input 
                                                             type="text" 
                                                             placeholder="DD/MM/AAAA o Vigente"
-                                                            title="Vigencia del Registro Sanitario"
                                                             value={item.vencimiento_registro_sanitario || ''}
                                                             onChange={e => updateTemplateItem(item.id, 'vencimiento_registro_sanitario', e.target.value)}
-                                                            className="bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-2 py-1 text-[10px] font-bold outline-none ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-primary shrink-0 w-32"
+                                                            className="w-32 bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-2 py-2 font-bold outline-none focus:ring-2 focus:ring-primary/20"
                                                         />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <button 
-                                                onClick={() => removeTemplateItem(item.id)}
-                                                className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all self-center ml-2"
-                                                title="Eliminar de la plantilla"
-                                            >
-                                                <Trash2 size={18} />
-                                            </button>
-                                        </div>
-                                    ))}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-center text-red-400">
+                                                        <button 
+                                                            onClick={() => removeTemplateItem(item.id)}
+                                                            className="p-2 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all"
+                                                            title="Eliminar de la plantilla"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
                                     {templateItems.length === 0 && (
-                                        <div className="py-12 text-center text-slate-400">
+                                        <div className="py-20 text-center text-slate-400">
                                             <p className="text-xs font-bold uppercase tracking-widest">Sin ítems asignados</p>
                                         </div>
                                     )}

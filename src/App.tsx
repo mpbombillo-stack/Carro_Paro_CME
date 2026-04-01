@@ -5,6 +5,7 @@ import { ConfigurationModule } from './components/masters/ConfigurationModule';
 import { CartsModule } from './components/masters/CartsModule';
 import { ReportsModule } from './components/analysis/ReportsModule';
 import { DashboardModule } from './components/analysis/DashboardModule';
+import { TraceabilityModule } from './components/analysis/TraceabilityModule';
 import { DashboardLayout, type DashboardTab } from './components/layout/DashboardLayout';
 import type { MasterUser } from './types/audit';
 
@@ -27,6 +28,8 @@ function App() {
         return <InventoryModule />;
       case 'carros':
         return <CartsModule />;
+      case 'trazabilidad':
+        return <TraceabilityModule />;
       case 'config':
         return <ConfigurationModule />;
       case 'dashboard':
