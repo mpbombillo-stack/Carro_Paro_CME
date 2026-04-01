@@ -256,22 +256,28 @@ export const CartsModule: React.FC = () => {
 
             const lines = text.split(/\r?\n/).filter(line => line.trim());
             if (lines.length === 0) {
+                console.error("CSV vacío o sin líneas válidas.");
                 setLoading(false);
                 return;
             }
+
+            console.log("Primeras líneas detectadas:", lines.slice(0, 3));
 
             // Detect delimiter: count commas vs semicolons in first line
             const firstLine = lines[0];
             const commaCount = (firstLine.match(/,/g) || []).length;
             const semiCount = (firstLine.match(/;/g) || []).length;
-            const delimiter = semiCount > commaCount ? ';' : ',';
+            const delimiter = semiCount >= commaCount && semiCount > 0 ? ';' : ',';
+            console.log("Delimitador detectado:", delimiter);
 
             // Detect if first line is a header
-            const headerKeywords = ['desc', 'item', 'nombre', 'cant', 'qty'];
+            const headerKeywords = ['desc', 'item', 'nombre', 'cant', 'qty', 'concentracion', 'invima'];
             const isHeader = headerKeywords.some(key => firstLine.toLowerCase().includes(key));
             const startIdx = isHeader ? 1 : 0;
+            console.log("Iniciando en línea:", startIdx, "Es encabezado:", isHeader);
 
             let importedCount = 0;
+            let errorCount = 0;
 
             for (let i = startIdx; i < lines.length; i++) {
                 const parts = lines[i].split(delimiter).map(p => p.trim());
@@ -279,7 +285,7 @@ export const CartsModule: React.FC = () => {
                     const desc = parts[0];
                     const concentration = parts[1] || '';
                     const pharmaForm = parts[2] || '';
-                    const qtyStr = parts[3];
+                    const qtyStr = parts[3] || '1';
                     const fv = parts[4] || '';
                     const loteLine = parts[5] || '';
                     const invima = parts[6] || '';
@@ -287,54 +293,70 @@ export const CartsModule: React.FC = () => {
                     
                     let finalMasterItemId = null;
                     
-                    // Find item ID by description
-                    const { data: item } = await supabase
-                        .from('master_items')
-                        .select('id')
-                        .ilike('description', desc)
-                        .maybeSingle();
-                    
-                    if (item) {
-                        finalMasterItemId = item.id;
-                    } else {
-                        // Create item if it doesn't exist (e.g. wiped database)
-                        const { data: newItem, error: err } = await supabase
+                    try {
+                        // Use UPSERT for master items to avoid unique conflicts and ensure existence
+                        const { data: item, error: upsertErr } = await supabase
                             .from('master_items')
-                            .insert([{
+                            .upsert([{
                                 description: desc,
                                 presentation: `${concentration} ${pharmaForm}`.trim() || 'N/A',
                                 standard_quantity: 1,
-                                category: 'Importado CSV'
-                            }])
+                                category: 'Importado CSV',
+                                invima_registry: invima || 'N/A'
+                            }], { 
+                                onConflict: 'description' 
+                            })
                             .select('id')
                             .single();
                         
-                        if (newItem && !err) {
-                            finalMasterItemId = newItem.id;
+                        if (upsertErr) {
+                            console.error(`Error en upsert de item "${desc}":`, upsertErr);
+                            // Fallback: try to find it
+                            const { data: existing } = await supabase
+                                .from('master_items')
+                                .select('id')
+                                .ilike('description', desc)
+                                .maybeSingle();
+                            if (existing) finalMasterItemId = existing.id;
+                        } else if (item) {
+                            finalMasterItemId = item.id;
                         }
-                    }
-                    
-                    if (finalMasterItemId) {
-                        const standard_quantity = parseInt(qtyStr?.replace(/[^0-9]/g, '') || '1') || 1;
-                        await supabase.from('cart_items_template').insert([{
-                            cart_id: finalCartId,
-                            master_item_id: finalMasterItemId,
-                            standard_quantity,
-                            fecha_vencimiento_insumo: fv,
-                            lote: loteLine,
-                            registro_sanitario: invima,
-                            vencimiento_registro_sanitario: vigencia
-                        }]);
-                        importedCount++;
+
+                        if (finalMasterItemId) {
+                            const standard_quantity = parseInt(qtyStr?.replace(/[^0-9]/g, '') || '1') || 1;
+                            const { error: insErr } = await supabase.from('cart_items_template').insert([{
+                                cart_id: finalCartId,
+                                master_item_id: finalMasterItemId,
+                                standard_quantity,
+                                fecha_vencimiento_insumo: fv,
+                                lote: loteLine,
+                                registro_sanitario: invima,
+                                vencimiento_registro_sanitario: vigencia
+                            }]);
+                            
+                            if (insErr) {
+                                console.error(`Error vinculando item "${desc}" al carro:`, insErr);
+                                errorCount++;
+                            } else {
+                                importedCount++;
+                            }
+                        } else {
+                            errorCount++;
+                            console.error(`No se pudo obtener ID maestro para "${desc}"`);
+                        }
+                    } catch (err) {
+                        console.error(`Error inesperado en línea ${i}:`, err);
+                        errorCount++;
                     }
                 }
             }
 
+            console.log(`Importación finalizada: ${importedCount} exitosos, ${errorCount} fallidos.`);
             fetchTemplateItems(finalCartId);
-            fetchCarts(); // Refresh list to show the new cart if it was just created
+            fetchCarts();
             setLoading(false);
-            setMessage(`Carro "${cartToUse.name}" configurado: ${importedCount} ítems vinculados`);
-            e.target.value = ''; // Reset input
+            setMessage(`Carga completa: ${importedCount} ítems vinculados. ${errorCount > 0 ? `(${errorCount} errores)` : ""}`);
+            e.target.value = '';
         };
         reader.readAsText(file);
     };
