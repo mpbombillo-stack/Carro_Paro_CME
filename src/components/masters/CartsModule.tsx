@@ -277,7 +277,13 @@ export const CartsModule: React.FC = () => {
                 const parts = lines[i].split(delimiter).map(p => p.trim());
                 if (parts.length >= 1 && parts[0]) {
                     const desc = parts[0];
-                    const qtyStr = parts[1];
+                    const concentration = parts[1] || '';
+                    const pharmaForm = parts[2] || '';
+                    const qtyStr = parts[3];
+                    const fv = parts[4] || '';
+                    const loteLine = parts[5] || '';
+                    const invima = parts[6] || '';
+                    const vigencia = parts[7] || '';
                     
                     let finalMasterItemId = null;
                     
@@ -296,7 +302,7 @@ export const CartsModule: React.FC = () => {
                             .from('master_items')
                             .insert([{
                                 description: desc,
-                                presentation: parts.length > 2 ? parts[2] : 'N/A', // Assume 3rd column might be presentation
+                                presentation: `${concentration} ${pharmaForm}`.trim() || 'N/A',
                                 standard_quantity: 1,
                                 category: 'Importado CSV'
                             }])
@@ -313,7 +319,11 @@ export const CartsModule: React.FC = () => {
                         await supabase.from('cart_items_template').insert([{
                             cart_id: finalCartId,
                             master_item_id: finalMasterItemId,
-                            standard_quantity
+                            standard_quantity,
+                            fecha_vencimiento_insumo: fv,
+                            lote: loteLine,
+                            registro_sanitario: invima,
+                            vencimiento_registro_sanitario: vigencia
                         }]);
                         importedCount++;
                     }
