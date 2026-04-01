@@ -279,6 +279,8 @@ export const CartsModule: React.FC = () => {
                     const desc = parts[0];
                     const qtyStr = parts[1];
                     
+                    let finalMasterItemId = null;
+                    
                     // Find item ID by description
                     const { data: item } = await supabase
                         .from('master_items')
@@ -287,10 +289,30 @@ export const CartsModule: React.FC = () => {
                         .maybeSingle();
                     
                     if (item) {
+                        finalMasterItemId = item.id;
+                    } else {
+                        // Create item if it doesn't exist (e.g. wiped database)
+                        const { data: newItem, error: err } = await supabase
+                            .from('master_items')
+                            .insert([{
+                                description: desc,
+                                presentation: parts.length > 2 ? parts[2] : 'N/A', // Assume 3rd column might be presentation
+                                standard_quantity: 1,
+                                category: 'Importado CSV'
+                            }])
+                            .select('id')
+                            .single();
+                        
+                        if (newItem && !err) {
+                            finalMasterItemId = newItem.id;
+                        }
+                    }
+                    
+                    if (finalMasterItemId) {
                         const standard_quantity = parseInt(qtyStr?.replace(/[^0-9]/g, '') || '1') || 1;
                         await supabase.from('cart_items_template').insert([{
                             cart_id: finalCartId,
-                            master_item_id: item.id,
+                            master_item_id: finalMasterItemId,
                             standard_quantity
                         }]);
                         importedCount++;
