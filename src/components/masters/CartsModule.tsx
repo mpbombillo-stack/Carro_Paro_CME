@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Trash2, Edit3, Truck, MapPin, PackageCheck, Settings, Search, Plus, X, Upload } from 'lucide-react';
+import { Trash2, Edit3, Truck, MapPin, PackageCheck, Settings, Search, Plus, X, Upload, List, AlertCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import type { MasterCart, MasterItem, CartItemTemplate } from '../../types/audit';
 
@@ -21,6 +21,7 @@ export const CartsModule: React.FC = () => {
     const [searchItem, setSearchItem] = useState('');
     const [showImportModal, setShowImportModal] = useState(false);
     const [importMetadata, setImportMetadata] = useState({ name: '', location: '', revision_month: '' });
+    const [cartItemCounts, setCartItemCounts] = useState<Record<string, number>>({});
 
     useEffect(() => {
         fetchCarts();
@@ -42,26 +43,23 @@ export const CartsModule: React.FC = () => {
             if (data !== null) {
                 setCarts(data);
                 localStorage.setItem('master_carts', JSON.stringify(data));
+                
+                // Fetch counts
+                const { data: counts } = await supabase
+                    .from('cart_items_template')
+                    .select('cart_id');
+                
+                if (counts) {
+                    const countMap: Record<string, number> = {};
+                    counts.forEach(c => {
+                        countMap[c.cart_id] = (countMap[c.cart_id] || 0) + 1;
+                    });
+                    setCartItemCounts(countMap);
+                }
                 return;
-            }
-
-            // Local fallback exclusively upon total network failure
-            const saved = localStorage.getItem('master_carts');
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                // Purge any corrupted legacy carts from the local database
-                const valid = parsed.filter((c: any) => typeof c.id === 'string' && c.id.length > 30);
-                if (valid.length !== parsed.length) localStorage.setItem('master_carts', JSON.stringify(valid));
-                setCarts(valid);
             }
         } catch (error) {
             console.error('Error fetching carts:', error);
-            const saved = localStorage.getItem('master_carts');
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                const valid = parsed.filter((c: any) => typeof c.id === 'string' && c.id.length > 30);
-                setCarts(valid);
-            }
         }
     };
 
@@ -207,158 +205,103 @@ export const CartsModule: React.FC = () => {
         if (selectedCartForItems) fetchTemplateItems(selectedCartForItems.id);
     };
 
-    const handleTemplateCSV = async (e: React.ChangeEvent<HTMLInputElement>, targetCart?: MasterCart) => {
-        const file = e.target.files?.[0];
-        const cartToUse = targetCart || selectedCartForItems;
-        if (!file || !cartToUse) return;
+    const importCSV = async (file: File, cartToUse: MasterCart) => {
+        return new Promise<void>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                try {
+                    const text = event.target?.result as string;
+                    if (!text) return resolve();
 
-        const reader = new FileReader();
-        reader.onload = async (event) => {
-            const text = event.target?.result as string;
-            if (!text) return;
+                    setLoading(true);
+                    let finalCartId = String(cartToUse.id);
+                    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(finalCartId);
 
-            setLoading(true);
-
-            let finalCartId = String(cartToUse.id);
-            const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(finalCartId);
-
-            if (!isUUID) {
-                console.warn('Sincronizando carro antes de importar CSV...');
-                const { data: existing } = await supabase.from('master_carts').select('id').eq('name', cartToUse.name).maybeSingle();
-                if (existing) {
-                    finalCartId = existing.id;
-                } else {
-                    const { data: newC } = await supabase.from('master_carts').insert([{ name: cartToUse.name, location: cartToUse.location, revision_month: cartToUse.revision_month }]).select().single();
-                    if (!newC) {
-                        alert('Error: No se pudo sincronizar el carro con la base de datos.');
-                        setLoading(false);
-                        return;
-                    }
-                    finalCartId = newC.id;
-                }
-            } else {
-                const { data: exists } = await supabase.from('master_carts').select('id').eq('id', finalCartId).maybeSingle();
-                if (!exists) {
-                    await supabase.from('master_carts').insert([{ 
-                        id: finalCartId, name: cartToUse.name, location: cartToUse.location, revision_month: cartToUse.revision_month 
-                    }]);
-                }
-            }
-
-            if (finalCartId !== String(cartToUse.id)) {
-                const updated = carts.map(c => String(c.id) === String(cartToUse.id) ? { ...c, id: finalCartId } : c);
-                setCarts(updated);
-                localStorage.setItem('master_carts', JSON.stringify(updated));
-                if (selectedCartForItems && String(selectedCartForItems.id) === String(cartToUse.id)) {
-                    setSelectedCartForItems({ ...cartToUse, id: finalCartId });
-                }
-            }
-
-            const lines = text.split(/\r?\n/).filter(line => line.trim());
-            if (lines.length === 0) {
-                console.error("CSV vacío o sin líneas válidas.");
-                setLoading(false);
-                return;
-            }
-
-            console.log("Primeras líneas detectadas:", lines.slice(0, 3));
-
-            // Detect delimiter: count commas vs semicolons in first line
-            const firstLine = lines[0];
-            const commaCount = (firstLine.match(/,/g) || []).length;
-            const semiCount = (firstLine.match(/;/g) || []).length;
-            const delimiter = semiCount >= commaCount && semiCount > 0 ? ';' : ',';
-            console.log("Delimitador detectado:", delimiter);
-
-            // Detect if first line is a header
-            const headerKeywords = ['desc', 'item', 'nombre', 'cant', 'qty', 'concentracion', 'invima'];
-            const isHeader = headerKeywords.some(key => firstLine.toLowerCase().includes(key));
-            const startIdx = isHeader ? 1 : 0;
-            console.log("Iniciando en línea:", startIdx, "Es encabezado:", isHeader);
-
-            let importedCount = 0;
-            let errorCount = 0;
-
-            for (let i = startIdx; i < lines.length; i++) {
-                const parts = lines[i].split(delimiter).map(p => p.trim());
-                if (parts.length >= 1 && parts[0]) {
-                    const desc = parts[0];
-                    const concentration = parts[1] || '';
-                    const pharmaForm = parts[2] || '';
-                    const qtyStr = parts[3] || '1';
-                    const fv = parts[4] || '';
-                    const loteLine = parts[5] || '';
-                    const invima = parts[6] || '';
-                    const vigencia = parts[7] || '';
-                    
-                    let finalMasterItemId = null;
-                    
-                    try {
-                        // Use UPSERT for master items to avoid unique conflicts and ensure existence
-                        const { data: item, error: upsertErr } = await supabase
-                            .from('master_items')
-                            .upsert([{
-                                description: desc,
-                                presentation: `${concentration} ${pharmaForm}`.trim() || 'N/A',
-                                standard_quantity: 1,
-                                category: 'Importado CSV',
-                                invima_registry: invima || 'N/A'
-                            }], { 
-                                onConflict: 'description' 
-                            })
-                            .select('id')
-                            .single();
-                        
-                        if (upsertErr) {
-                            console.error(`Error en upsert de item "${desc}":`, upsertErr);
-                            // Fallback: try to find it
-                            const { data: existing } = await supabase
-                                .from('master_items')
-                                .select('id')
-                                .ilike('description', desc)
-                                .maybeSingle();
-                            if (existing) finalMasterItemId = existing.id;
-                        } else if (item) {
-                            finalMasterItemId = item.id;
-                        }
-
-                        if (finalMasterItemId) {
-                            const standard_quantity = parseInt(qtyStr?.replace(/[^0-9]/g, '') || '1') || 1;
-                            const { error: insErr } = await supabase.from('cart_items_template').insert([{
-                                cart_id: finalCartId,
-                                master_item_id: finalMasterItemId,
-                                standard_quantity,
-                                fecha_vencimiento_insumo: fv,
-                                lote: loteLine,
-                                registro_sanitario: invima,
-                                vencimiento_registro_sanitario: vigencia
-                            }]);
-                            
-                            if (insErr) {
-                                console.error(`Error vinculando item "${desc}" al carro:`, insErr);
-                                errorCount++;
-                            } else {
-                                importedCount++;
-                            }
+                    if (!isUUID) {
+                        const { data: existing } = await supabase.from('master_carts').select('id').eq('name', cartToUse.name).maybeSingle();
+                        if (existing) {
+                            finalCartId = existing.id;
                         } else {
-                            errorCount++;
-                            console.error(`No se pudo obtener ID maestro para "${desc}"`);
+                            const { data: newC } = await supabase.from('master_carts').insert([{ name: cartToUse.name, location: cartToUse.location, revision_month: cartToUse.revision_month }]).select().single();
+                            if (newC) finalCartId = newC.id;
                         }
-                    } catch (err) {
-                        console.error(`Error inesperado en línea ${i}:`, err);
-                        errorCount++;
                     }
-                }
-            }
 
-            console.log(`Importación finalizada: ${importedCount} exitosos, ${errorCount} fallidos.`);
-            fetchTemplateItems(finalCartId);
-            fetchCarts();
-            setLoading(false);
-            setMessage(`Carga completa: ${importedCount} ítems vinculados. ${errorCount > 0 ? `(${errorCount} errores)` : ""}`);
+                    const lines = text.split(/\r?\n/).filter(line => line.trim());
+                    if (lines.length === 0) {
+                        setLoading(false);
+                        return resolve();
+                    }
+
+                    const firstLine = lines[0];
+                    const semiCount = (firstLine.match(/;/g) || []).length;
+                    const commaCount = (firstLine.match(/,/g) || []).length;
+                    const delimiter = semiCount >= commaCount && semiCount > 0 ? ';' : ',';
+
+                    const headerKeywords = ['desc', 'nombre', 'cant', 'qty', 'invima'];
+                    const isHeader = headerKeywords.some(key => firstLine.toLowerCase().includes(key));
+                    const startIdx = isHeader ? 1 : 0;
+
+                    let imported = 0;
+                    for (let i = startIdx; i < lines.length; i++) {
+                        const parts = lines[i].split(delimiter).map(p => p.trim());
+                        if (parts.length >= 1 && parts[0]) {
+                            const desc = parts[0];
+                            const conc = parts[1] || '';
+                            const form = parts[2] || '';
+                            const qty = parseInt(parts[3]?.replace(/[^0-9]/g, '') || '1') || 1;
+                            const fv = parts[4] || '';
+                            const lot = parts[5] || '';
+                            const reg = parts[6] || '';
+                            const vig = parts[7] || '';
+
+                            const { data: item } = await supabase.from('master_items').upsert([{
+                                description: desc,
+                                presentation: `${conc} ${form}`.trim() || 'N/A',
+                                standard_quantity: 1,
+                                category: 'Importado',
+                                invima_registry: reg || 'N/A'
+                            }], { onConflict: 'description' }).select('id').single();
+
+                            if (item) {
+                                await supabase.from('cart_items_template').insert([{
+                                    cart_id: finalCartId,
+                                    master_item_id: item.id,
+                                    standard_quantity: qty,
+                                    fecha_vencimiento_insumo: fv,
+                                    lote: lot,
+                                    registro_sanitario: reg,
+                                    vencimiento_registro_sanitario: vig
+                                }]);
+                                imported++;
+                            }
+                        }
+                    }
+
+                    console.log(`Importados ${imported} ítems.`);
+                    await fetchCarts();
+                    if (selectedCartForItems && String(selectedCartForItems.id) === String(cartToUse.id)) {
+                        fetchTemplateItems(finalCartId);
+                    }
+                    setMessage(`Carga completa: ${imported} ítems vinculados.`);
+                    resolve();
+                } catch (e) {
+                    console.error(e);
+                    resolve();
+                } finally {
+                    setLoading(false);
+                }
+            };
+            reader.readAsText(file);
+        });
+    };
+
+    const handleTemplateCSV = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file && selectedCartForItems) {
+            await importCSV(file, selectedCartForItems);
             e.target.value = '';
-        };
-        reader.readAsText(file);
+        }
     };
 
     const handleSave = async (e: React.FormEvent) => {
@@ -514,6 +457,17 @@ export const CartsModule: React.FC = () => {
                                         <div className="flex items-center gap-2 text-primary font-black text-[10px] uppercase tracking-widest bg-primary/5 w-fit px-2 py-1 rounded-lg">
                                             <PackageCheck size={12} />
                                             Revisión: {cart.revision_month}
+                                        </div>
+                                    )}
+                                    {(cartItemCounts[cart.id] || 0) > 0 ? (
+                                        <div className="flex items-center gap-2 text-emerald-500 font-black text-[10px] uppercase tracking-widest bg-emerald-50 w-fit px-2 py-1 rounded-lg">
+                                            <List size={12} />
+                                            {cartItemCounts[cart.id]} ÍTEMS VINCULADOS
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center gap-2 text-amber-500 font-black text-[10px] uppercase tracking-widest bg-amber-50 w-fit px-2 py-1 rounded-lg opacity-60">
+                                            <AlertCircle size={12} />
+                                            SIN ÍTEMS CONFIGURADOS
                                         </div>
                                     )}
                                 </div>
@@ -744,29 +698,11 @@ export const CartsModule: React.FC = () => {
                                         className="hidden" 
                                         onChange={async (e) => {
                                             const file = e.target.files?.[0];
-                                            if (!file) return;
-                                            
-                                            // 1. Create the cart
-                                            const { data: cart, error: cErr } = await supabase
-                                                .from('master_carts')
-                                                .insert([importMetadata])
-                                                .select()
-                                                .single();
-                                            
-                                            if (cErr) {
-                                                alert('Error al crear el carro: ' + cErr.message);
-                                                return;
+                                            if (file) {
+                                                setShowImportModal(false);
+                                                await importCSV(file, importMetadata as MasterCart);
+                                                setImportMetadata({ name: '', location: '', revision_month: '' });
                                             }
-
-                                            // 2. Trigger the template import for this new cart
-                                            setSelectedCartForItems(cart);
-                                            setShowImportModal(false);
-                                            setImportMetadata({ name: '', location: '', revision_month: '' });
-                                            
-                                            // Use handleTemplateCSV simulation or refactor it
-                                            const fakeEvent = { target: { files: [file] } } as any;
-                                            // Optimization: I'll need to make handleTemplateCSV accept the cart explicitly or wait for state
-                                            handleTemplateCSV(fakeEvent, cart);
                                         }} 
                                     />
                                 )}
