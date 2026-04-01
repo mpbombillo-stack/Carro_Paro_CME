@@ -3,90 +3,6 @@ import { Plus, Search, Trash2, Edit3, Pill, PackageCheck, X, Upload } from 'luci
 import { supabase } from '../../lib/supabase';
 import type { MasterItem } from '../../types/audit';
 
-const PREDEFINED_MEDS = [
-    { description: 'ADRENALINA 1MG/ML', presentation: 'Ampolla 1ml' },
-    { description: 'AGUA DESTILADA 10ML', presentation: 'Ampolla 10ml' },
-    { description: 'AMIODARONA 150MG/3ML', presentation: 'Ampolla 3ml' },
-    { description: 'AGUJA HIPODERMICA 18 G x 1 1/2', presentation: 'Unidad' },
-    { description: 'AGUJA HIPODERMICA 21 G x 1 1/2', presentation: 'Unidad' },
-    { description: 'AGUJA HIPODERMICA 22 G x 1 1/2', presentation: 'Unidad' },
-    { description: 'AGUJA HIPODERMICA 23 G x 1', presentation: 'Unidad' },
-    { description: 'AGUJA HIPODERMICA 25 G x 5/8', presentation: 'Unidad' },
-    { description: 'AMBÚ ADULTO', presentation: 'Unidad' },
-    { description: 'AMBÚ PEDIATRICO', presentation: 'Unidad' },
-    { description: 'AMBÚ NEOPUFF', presentation: 'Unidad' },
-    { description: 'ASPIRINA 100MG', presentation: 'Tableta' },
-    { description: 'ATROPINA SULFATO 1MG/ML', presentation: 'Ampolla 1ml' },
-    { description: 'BICARBONATO DE SODIO 10%', presentation: 'Ampolla 10ml' },
-    { description: 'BROMURO DE IPRATROPIO', presentation: 'Inhalador' },
-    { description: 'CAPTOPRIL 25MG', presentation: 'Tableta' },
-    { description: 'CATETER IV N° 14', presentation: 'Unidad' },
-    { description: 'CATETER IV N° 16', presentation: 'Unidad' },
-    { description: 'CATETER IV N° 18', presentation: 'Unidad' },
-    { description: 'CATETER IV N° 20', presentation: 'Unidad' },
-    { description: 'CATETER IV N° 22', presentation: 'Unidad' },
-    { description: 'CATETER IV N° 24', presentation: 'Unidad' },
-    { description: 'CATETER NASAL ADULTO', presentation: 'Unidad' },
-    { description: 'CATETER NASAL PEDIATRICO', presentation: 'Unidad' },
-    { description: 'CIPROFLOXACINO 200MG/100ML', presentation: 'Bolsa 100ml' },
-    { description: 'CLONIDINA 150MCG/1ML', presentation: 'Ampolla 1ml' },
-    { description: 'CLORURO DE POTASIO 20meq/10ml', presentation: 'Ampolla 10ml' },
-    { description: 'CLORURO DE SODIO 0.9% 10ML', presentation: 'Ampolla 10ml' },
-    { description: 'CLORURO DE SODIO 0.9% 500ML', presentation: 'Bolsa 500ml' },
-    { description: 'DEXAMETASONA 4MG/ML', presentation: 'Ampolla 1ml' },
-    { description: 'DIAZEPAM 10MG/2ML', presentation: 'Ampolla 2ml' },
-    { description: 'DEXTROSA 5% EN AD 500ML', presentation: 'Bolsa 500ml' },
-    { description: 'DOBUTAMINA 250MG/20ML', presentation: 'Ampolla 20ml' },
-    { description: 'DOPAMINA 200MG/5ML', presentation: 'Ampolla 5ml' },
-    { description: 'ENALAPRIL 20MG', presentation: 'Tableta' },
-    { description: 'EPINEFRINA 1MG/ML', presentation: 'Ampolla 1ml' },
-    { description: 'EQUIPO DE MACROGOTEO', presentation: 'Unidad' },
-    { description: 'EQUIPO DE MICROGOTEO', presentation: 'Unidad' },
-    { description: 'EQUIPO DE TRANSFUSION', presentation: 'Unidad' },
-    { description: 'EQUIPO VENOCLISIS ADULTO', presentation: 'Unidad' },
-    { description: 'EQUIPO VENOCLISIS PEDIATRICO', presentation: 'Unidad' },
-    { description: 'GASA ESTERIL 7.5 x 7.5', presentation: 'Paquete' },
-    { description: 'GUANTES QUIRURGICOS 6.5', presentation: 'Par' },
-    { description: 'GUANTES QUIRURGICOS 7.0', presentation: 'Par' },
-    { description: 'GUANTES QUIRURGICOS 7.5', presentation: 'Par' },
-    { description: 'GUANTES QUIRURGICOS 8.0', presentation: 'Par' },
-    { description: 'GUANTES LATEX', presentation: 'Par' },
-    { description: 'GUIA DE INTUBACION ADULTO', presentation: 'Unidad' },
-    { description: 'GUIA DE INTUBACION NIÑO', presentation: 'Unidad' },
-    { description: 'HIDROCORTISONA 100MG', presentation: 'Vial' },
-    { description: 'ISOSORBIDE DINITRATO 5MG', presentation: 'Tableta' },
-    { description: 'LIDOCAINA 2%', presentation: 'Frasco 50ml' },
-    { description: 'MASCARA RECIRCULACION ADULTO', presentation: 'Unidad' },
-    { description: 'MASCARA RECIRCULACION NIÑO', presentation: 'Unidad' },
-    { description: 'METILPREDNISOLONA 500MG', presentation: 'Vial' },
-    { description: 'MIDAZOLAM 5MG/5ML', presentation: 'Ampolla 5ml' },
-    { description: 'MORFINA 10MG/ML', presentation: 'Ampolla 1ml' },
-    { description: 'NALOXONA 0.4MG/ML', presentation: 'Ampolla 1ml' },
-    { description: 'NITROGLICERINA 50MG/10ML', presentation: 'Ampolla 10ml' },
-    { description: 'NOREPINEFRINA 4MG', presentation: 'Ampolla 4ml' },
-    { description: 'RANITIDINA 50MG/2ML', presentation: 'Ampolla 2ml' },
-    { description: 'SONDA FOLEY 12', presentation: 'Unidad' },
-    { description: 'SONDA FOLEY 14', presentation: 'Unidad' },
-    { description: 'SONDA FOLEY 16', presentation: 'Unidad' },
-    { description: 'SONDA FOLEY 18', presentation: 'Unidad' },
-    { description: 'SONDA FOLEY 20', presentation: 'Unidad' },
-    { description: 'SONDA LEVIN 14', presentation: 'Unidad' },
-    { description: 'SONDA LEVIN 16', presentation: 'Unidad' },
-    { description: 'SONDA LEVIN 18', presentation: 'Unidad' },
-    { description: 'SONDA NELATON 14', presentation: 'Unidad' },
-    { description: 'SONDA NELATON 16', presentation: 'Unidad' },
-    { description: 'SONDA SUCCION 12', presentation: 'Unidad' },
-    { description: 'SONDA SUCCION 14', presentation: 'Unidad' },
-    { description: 'TUBO ENDOTRAQUEAL 6.0', presentation: 'Unidad' },
-    { description: 'TUBO ENDOTRAQUEAL 6.5', presentation: 'Unidad' },
-    { description: 'TUBO ENDOTRAQUEAL 7.0', presentation: 'Unidad' },
-    { description: 'TUBO ENDOTRAQUEAL 7.5', presentation: 'Unidad' },
-    { description: 'TUBO ENDOTRAQUEAL 8.0', presentation: 'Unidad' },
-    { description: 'TUBO ENDOTRAQUEAL 8.5', presentation: 'Unidad' },
-    { description: 'VECURONIO 4MG', presentation: 'Vial' },
-    { description: 'VERAPAMILO 5MG/2ML', presentation: 'Ampolla 2ml' }
-];
-
 export const InventoryModule: React.FC = () => {
     const [items, setItems] = useState<MasterItem[]>([]);
     const [newItem, setNewItem] = useState<Partial<MasterItem>>({
@@ -113,8 +29,10 @@ export const InventoryModule: React.FC = () => {
                 .select('*')
                 .order('description', { ascending: true });
 
-            if (data && data.length > 0 && !error) {
+            if (data !== null && !error) {
+                // Succeeded, even if it's empty (data.length === 0)
                 setItems(data);
+                localStorage.setItem('master_items', JSON.stringify(data));
                 setMessage(null);
                 return;
             }
@@ -310,15 +228,12 @@ export const InventoryModule: React.FC = () => {
                                     <input 
                                         type="text"
                                         required
-                                        list="medications-list"
                                         value={newItem.description}
                                         onChange={e => {
                                             const val = e.target.value;
-                                            const match = PREDEFINED_MEDS.find(m => m.description === val);
                                             setNewItem({
                                                 ...newItem, 
-                                                description: val,
-                                                presentation: match ? match.presentation : newItem.presentation
+                                                description: val
                                             });
                                         }}
                                         className="w-full pl-4 pr-10 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-primary/20 rounded-xl font-bold text-sm outline-none transition-all dark:text-white"
@@ -335,11 +250,6 @@ export const InventoryModule: React.FC = () => {
                                         </button>
                                     )}
                                 </div>
-                                <datalist id="medications-list">
-                                    {PREDEFINED_MEDS.map((med: { description: string }, idx: number) => (
-                                        <option key={idx} value={med.description} />
-                                    ))}
-                                </datalist>
                             </div>
                             <div className="space-y-1">
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Presentación / Concentración</label>

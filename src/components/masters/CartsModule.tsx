@@ -39,12 +39,13 @@ export const CartsModule: React.FC = () => {
                 .select('*')
                 .order('name', { ascending: true });
             
-            if (data && data.length > 0) {
+            if (data !== null) {
                 setCarts(data);
+                localStorage.setItem('master_carts', JSON.stringify(data));
                 return;
             }
 
-            // Local fallback
+            // Local fallback exclusively upon total network failure
             const saved = localStorage.getItem('master_carts');
             if (saved) {
                 const parsed = JSON.parse(saved);
