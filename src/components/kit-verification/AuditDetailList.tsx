@@ -64,12 +64,14 @@ export const AuditDetailList: React.FC<Props> = ({ details, onUpdate }) => {
                 <table className="min-w-full border-collapse divide-y divide-slate-200 dark:divide-slate-800">
                     <thead>
                         <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-widest">
-                            <th className="px-6 py-4 text-left">Descripción / Producto</th>
-                            <th className="px-4 py-4 text-center">Cant.</th>
-                            <th className="px-4 py-4 text-left">Lote</th>
-                            <th className="px-4 py-4 text-left">Vencimiento</th>
-                            <th className="px-4 py-4 text-center">Semaforización</th>
-                            <th className="px-6 py-4 text-center">Acciones</th>
+                            <th className="px-4 py-4 text-left">Descripción / Producto</th>
+                            <th className="px-2 py-4 text-center">Cant.</th>
+                            <th className="px-2 py-4 text-left">Lote</th>
+                            <th className="px-2 py-4 text-left">Vencimiento</th>
+                            <th className="px-2 py-4 text-left">Reg. Sanitario</th>
+                            <th className="px-2 py-4 text-left">Vigencia Reg.</th>
+                            <th className="px-2 py-4 text-center">Estado</th>
+                            <th className="px-4 py-4 text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -79,11 +81,10 @@ export const AuditDetailList: React.FC<Props> = ({ details, onUpdate }) => {
 
                             return (
                                 <tr key={item.id} className={`${status === 'ROJO' ? 'bg-red-50/50' : 'hover:bg-slate-50/[0.3]'} transition-colors`}>
-                                    <td className="px-6 py-4">
+                                    <td className="px-4 py-4">
                                         <p className="text-sm font-black text-slate-800 dark:text-slate-100">{item.descripcion}</p>
-                                        <p className="text-[10px] font-bold text-primary uppercase mt-0.5">{item.registro_sanitario}</p>
                                     </td>
-                                    <td className="px-4 py-4 text-center">
+                                    <td className="px-2 py-4 text-center">
                                         <input
                                             type="number"
                                             value={item.cantidad_fisica}
@@ -92,26 +93,47 @@ export const AuditDetailList: React.FC<Props> = ({ details, onUpdate }) => {
                                             className="w-14 p-2 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-center text-sm font-black focus:ring-2 focus:ring-primary/20 outline-none"
                                         />
                                     </td>
-                                    <td className="px-4 py-4">
+                                    <td className="px-2 py-4">
                                         <input
                                             type="text"
                                             value={item.lote}
                                             onChange={(e) => handleUpdateItem(item.id, 'lote', e.target.value)}
                                             placeholder="LOTE"
                                             title="Lote"
-                                            className="w-24 p-2 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-xs font-mono font-bold focus:ring-2 focus:ring-primary/20 outline-none"
+                                            className="w-20 p-2 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-xs font-mono font-bold focus:ring-2 focus:ring-primary/20 outline-none"
                                         />
                                     </td>
-                                    <td className="px-4 py-4">
+                                    <td className="px-2 py-4">
                                         <input
-                                            type="date"
+                                            type="text"
                                             value={item.fecha_vencimiento_insumo}
                                             onChange={(e) => handleUpdateItem(item.id, 'fecha_vencimiento_insumo', e.target.value)}
+                                            placeholder="DD/MM/AAAA"
                                             title="Fecha vencimiento"
-                                            className="p-2 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-[10px] font-bold focus:ring-2 focus:ring-primary/20 outline-none"
+                                            className="w-24 p-2 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-[10px] font-bold focus:ring-2 focus:ring-primary/20 outline-none"
                                         />
                                     </td>
-                                    <td className="px-4 py-4 text-center">
+                                    <td className="px-2 py-4">
+                                        <input
+                                            type="text"
+                                            value={item.registro_sanitario || ''}
+                                            onChange={(e) => handleUpdateItem(item.id, 'registro_sanitario', e.target.value)}
+                                            placeholder="INVIMA..."
+                                            title="Registro Sanitario"
+                                            className="w-24 p-2 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-[10px] font-bold focus:ring-2 focus:ring-primary/20 outline-none uppercase"
+                                        />
+                                    </td>
+                                    <td className="px-2 py-4">
+                                        <input
+                                            type="text"
+                                            value={item.vencimiento_registro_sanitario || ''}
+                                            onChange={(e) => handleUpdateItem(item.id, 'vencimiento_registro_sanitario', e.target.value)}
+                                            placeholder="DD/MM/AAAA o Vigente"
+                                            title="Vigencia del Registro Sanitario"
+                                            className="w-32 p-2 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-[10px] font-bold focus:ring-2 focus:ring-primary/20 outline-none"
+                                        />
+                                    </td>
+                                    <td className="px-2 py-4 text-center">
                                         <div className="flex flex-col items-center gap-1">
                                             <div className={`size-3 rounded-full ${statusColor} ring-4 ring-${statusColor}/10`} />
                                             <span className={`text-[8px] font-black uppercase ${status === 'ROJO' ? 'text-red-600' : 'text-slate-400'}`}>
@@ -119,7 +141,7 @@ export const AuditDetailList: React.FC<Props> = ({ details, onUpdate }) => {
                                             </span>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-4 py-4">
                                         <div className="flex justify-center items-center gap-2">
                                             <button 
                                                 onClick={() => handleUpdateItem(item.id, 'estado_conformidad', !item.estado_conformidad)}

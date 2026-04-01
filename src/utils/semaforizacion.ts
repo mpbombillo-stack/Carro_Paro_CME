@@ -12,12 +12,27 @@ import type { AuditStatus } from '../types/audit';
 export function getTrafficLightStatus(fechaItem: string, fechaRegistro: string): AuditStatus {
     if (!fechaItem || !fechaRegistro) return 'ROJO';
 
-    const today = new Date();
-    const dateItem = new Date(fechaItem);
-    const dateReg = new Date(fechaRegistro);
+    const isRegistroVigente = fechaRegistro.toLowerCase().trim() === 'vigente';
 
-    if (isNaN(dateItem.getTime()) || isNaN(dateReg.getTime())) {
-        return 'ROJO';
+    // Helper para parsear fechas que pueden venir en yyyy-mm-dd o dd/mm/yyyy
+    const parseDateStr = (dateStr: string) => {
+        if (!dateStr) return new Date(NaN);
+        if (dateStr.includes('/')) {
+            const parts = dateStr.split('/');
+            if (parts.length === 3) {
+                // DD/MM/YYYY
+                return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+            }
+        }
+        return new Date(dateStr);
+    };
+
+    const today = new Date();
+    const dateItem = parseDateStr(fechaItem);
+    const dateReg = isRegistroVigente ? new Date(today.getFullYear() + 10, 0, 1) : parseDateStr(fechaRegistro);
+
+    if (isNaN(dateItem.getTime()) || (!isRegistroVigente && isNaN(dateReg.getTime()))) {
+        return 'ROJO'; // Formato inválido o fecha no reconocida
     }
 
     // Consideramos la fecha mas restrictiva.

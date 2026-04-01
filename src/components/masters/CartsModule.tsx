@@ -570,11 +570,12 @@ export const CartsModule: React.FC = () => {
                                                             className="w-24 bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-2 py-1 text-[10px] font-bold outline-none ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-primary flex-1 min-w-[100px]"
                                                         />
                                                         <input 
-                                                            type="date" 
+                                                            type="text" 
+                                                            placeholder="DD/MM/AAAA"
                                                             title="Fecha de Vencimiento de Lote"
                                                             value={item.fecha_vencimiento_insumo || ''}
                                                             onChange={e => updateTemplateItem(item.id, 'fecha_vencimiento_insumo', e.target.value)}
-                                                            className="bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-2 py-1 text-[10px] font-bold outline-none ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-primary shrink-0"
+                                                            className="bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-2 py-1 text-[10px] font-bold outline-none ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-primary shrink-0 w-24"
                                                         />
                                                     </div>
                                                     <div className="flex flex-wrap gap-2">
@@ -587,11 +588,12 @@ export const CartsModule: React.FC = () => {
                                                             className="w-32 bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-2 py-1 text-[10px] font-bold outline-none ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-primary flex-1 min-w-[120px]"
                                                         />
                                                         <input 
-                                                            type="date" 
+                                                            type="text" 
+                                                            placeholder="DD/MM/AAAA o Vigente"
                                                             title="Vigencia del Registro Sanitario"
                                                             value={item.vencimiento_registro_sanitario || ''}
                                                             onChange={e => updateTemplateItem(item.id, 'vencimiento_registro_sanitario', e.target.value)}
-                                                            className="bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-2 py-1 text-[10px] font-bold outline-none ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-primary shrink-0"
+                                                            className="bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-2 py-1 text-[10px] font-bold outline-none ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-primary shrink-0 w-32"
                                                         />
                                                     </div>
                                                 </div>
