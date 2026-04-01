@@ -575,6 +575,8 @@ export const CartsModule: React.FC = () => {
                                                     <td className="px-2 py-3">
                                                         <input 
                                                             type="number" 
+                                                            title="Cantidad estándar"
+                                                            placeholder="Cant."
                                                             value={item.standard_quantity}
                                                             onChange={e => updateTemplateItem(item.id, 'standard_quantity', parseInt(e.target.value) || 1)}
                                                             className="w-16 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-center font-black text-primary outline-none focus:ring-2 focus:ring-primary/20 py-2 mx-auto block"
@@ -583,6 +585,7 @@ export const CartsModule: React.FC = () => {
                                                     <td className="px-2 py-3">
                                                         <input 
                                                             type="text" 
+                                                            title="Fecha de vencimiento"
                                                             placeholder="DD/MM/AAAA"
                                                             value={item.fecha_vencimiento_insumo || ''}
                                                             onChange={e => updateTemplateItem(item.id, 'fecha_vencimiento_insumo', e.target.value)}
@@ -592,6 +595,7 @@ export const CartsModule: React.FC = () => {
                                                     <td className="px-2 py-3">
                                                         <input 
                                                             type="text" 
+                                                            title="Lote"
                                                             placeholder="Lote"
                                                             value={item.lote || ''}
                                                             onChange={e => updateTemplateItem(item.id, 'lote', e.target.value)}
@@ -601,6 +605,7 @@ export const CartsModule: React.FC = () => {
                                                     <td className="px-2 py-3">
                                                         <input 
                                                             type="text" 
+                                                            title="Registro Sanitario INVIMA"
                                                             placeholder="INVIMA..."
                                                             value={item.registro_sanitario || ''}
                                                             onChange={e => updateTemplateItem(item.id, 'registro_sanitario', e.target.value)}
@@ -610,6 +615,7 @@ export const CartsModule: React.FC = () => {
                                                     <td className="px-2 py-3">
                                                         <input 
                                                             type="text" 
+                                                            title="Vencimiento de Registro"
                                                             placeholder="DD/MM/AAAA o Vigente"
                                                             value={item.vencimiento_registro_sanitario || ''}
                                                             onChange={e => updateTemplateItem(item.id, 'vencimiento_registro_sanitario', e.target.value)}
