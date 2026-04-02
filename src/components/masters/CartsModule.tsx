@@ -569,13 +569,13 @@ export const CartsModule: React.FC = () => {
                                     <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-left text-xs">
                                         <thead className="sticky top-0 bg-slate-100 dark:bg-slate-800 z-10">
                                             <tr className="text-[10px] font-black uppercase text-slate-500 tracking-widest">
-                                                <th className="px-4 py-3">Nombre</th>
-                                                <th className="px-2 py-3">Presentación</th>
-                                                <th className="px-2 py-3 text-center">Cantidad</th>
+                                                <th className="px-4 py-3">NOMBRE</th>
+                                                <th className="px-2 py-3">PRESENTACIÓN</th>
+                                                <th className="px-2 py-3 text-center">CANTIDAD</th>
                                                 <th className="px-2 py-3">LOTE</th>
                                                 <th className="px-2 py-3">FECHA DE VENCIMIENTO</th>
-                                                <th className="px-2 py-3">Registro Sanitario</th>
-                                                <th className="px-2 py-3">Venc. Registro</th>
+                                                <th className="px-2 py-3">REGISTRO SANITARIO</th>
+                                                <th className="px-2 py-3">VENCIMIENTO REGISTRO</th>
                                                 <th className="px-4 py-3 text-center"></th>
                                             </tr>
                                         </thead>
