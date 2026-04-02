@@ -33,6 +33,18 @@ export const CartsModule: React.FC = () => {
         }
     }, [selectedCartForItems]);
 
+    const formatInputDate = (value: string) => {
+        const lower = value.toLowerCase();
+        if (lower.startsWith('vig')) return 'VIGENTE';
+        
+        // Remove everything but numbers
+        const digits = value.replace(/\D/g, '');
+        if (digits.length === 8) {
+            return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4, 8)}`;
+        }
+        return value;
+    };
+
     const fetchCarts = async () => {
         try {
             const { data } = await supabase
@@ -560,9 +572,9 @@ export const CartsModule: React.FC = () => {
                                                 <th className="px-4 py-3">Nombre</th>
                                                 <th className="px-2 py-3">Presentación</th>
                                                 <th className="px-2 py-3 text-center">Cantidad</th>
-                                                <th className="px-2 py-3">F.V</th>
-                                                <th className="px-2 py-3">Lote</th>
-                                                <th className="px-2 py-3">Invima</th>
+                                                <th className="px-2 py-3">LOTE</th>
+                                                <th className="px-2 py-3">FECHA DE VENCIMIENTO</th>
+                                                <th className="px-2 py-3">Registro Sanitario</th>
                                                 <th className="px-2 py-3">Venc. Registro</th>
                                                 <th className="px-4 py-3 text-center"></th>
                                             </tr>
@@ -585,21 +597,21 @@ export const CartsModule: React.FC = () => {
                                                     <td className="px-2 py-3">
                                                         <input 
                                                             type="text" 
-                                                            title="Fecha de vencimiento"
-                                                            placeholder="DD/MM/AAAA"
-                                                            value={item.fecha_vencimiento_insumo || ''}
-                                                            onChange={e => updateTemplateItem(item.id, 'fecha_vencimiento_insumo', e.target.value)}
-                                                            className="w-24 bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-2 py-2 font-bold outline-none focus:ring-2 focus:ring-primary/20"
-                                                        />
-                                                    </td>
-                                                    <td className="px-2 py-3">
-                                                        <input 
-                                                            type="text" 
                                                             title="Lote"
                                                             placeholder="Lote"
                                                             value={item.lote || ''}
                                                             onChange={e => updateTemplateItem(item.id, 'lote', e.target.value)}
                                                             className="w-20 bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-2 py-2 font-bold outline-none focus:ring-2 focus:ring-primary/20"
+                                                        />
+                                                    </td>
+                                                    <td className="px-2 py-3">
+                                                        <input 
+                                                            type="text" 
+                                                            title="Fecha de vencimiento"
+                                                            placeholder="DD/MM/AAAA"
+                                                            value={item.fecha_vencimiento_insumo || ''}
+                                                            onChange={e => updateTemplateItem(item.id, 'fecha_vencimiento_insumo', formatInputDate(e.target.value))}
+                                                            className="w-24 bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-2 py-2 font-bold outline-none focus:ring-2 focus:ring-primary/20"
                                                         />
                                                     </td>
                                                     <td className="px-2 py-3">
@@ -618,7 +630,7 @@ export const CartsModule: React.FC = () => {
                                                             title="Vencimiento de Registro"
                                                             placeholder="DD/MM/AAAA o Vigente"
                                                             value={item.vencimiento_registro_sanitario || ''}
-                                                            onChange={e => updateTemplateItem(item.id, 'vencimiento_registro_sanitario', e.target.value)}
+                                                            onChange={e => updateTemplateItem(item.id, 'vencimiento_registro_sanitario', formatInputDate(e.target.value))}
                                                             className="w-32 bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-2 py-2 font-bold outline-none focus:ring-2 focus:ring-primary/20"
                                                         />
                                                     </td>
