@@ -77,9 +77,9 @@ CREATE TABLE IF NOT EXISTS audit_details (
   descripcion TEXT NOT NULL,
   cantidad_fisica INTEGER NOT NULL,
   lote TEXT NOT NULL,
-  fecha_vencimiento_insumo DATE NOT NULL,
+  fecha_vencimiento_insumo TEXT NOT NULL,
   registro_sanitario TEXT NOT NULL,
-  vencimiento_registro_sanitario DATE NOT NULL,
+  vencimiento_registro_sanitario TEXT NOT NULL,
   estado_conformidad BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -121,9 +121,9 @@ CREATE TABLE IF NOT EXISTS cart_items_template (
     master_item_id UUID REFERENCES master_items(id) ON DELETE CASCADE,
     standard_quantity INTEGER NOT NULL DEFAULT 1,
     lote TEXT DEFAULT '',
-    fecha_vencimiento_insumo DATE,
+    fecha_vencimiento_insumo TEXT,
     registro_sanitario TEXT DEFAULT '',
-    vencimiento_registro_sanitario DATE,
+    vencimiento_registro_sanitario TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ALTER TABLE cart_items_template DROP CONSTRAINT IF EXISTS cart_items_template_cart_id_master_item_id_key;
@@ -136,6 +136,12 @@ BEGIN
         ALTER TABLE cart_items_template ADD COLUMN registro_sanitario TEXT DEFAULT '';
     END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='cart_items_template' AND column_name='vencimiento_registro_sanitario') THEN
-        ALTER TABLE cart_items_template ADD COLUMN vencimiento_registro_sanitario DATE;
+        ALTER TABLE cart_items_template ADD COLUMN vencimiento_registro_sanitario TEXT;
+    ELSE
+        ALTER TABLE cart_items_template ALTER COLUMN vencimiento_registro_sanitario TYPE TEXT;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='cart_items_template' AND column_name='fecha_vencimiento_insumo') THEN
+        ALTER TABLE cart_items_template ALTER COLUMN fecha_vencimiento_insumo TYPE TEXT;
     END IF;
 END $$;
