@@ -27,3 +27,14 @@ ADD COLUMN vencimiento_registro_sanitario TEXT;
 -- 3. Limpieza opcional de tablas (solo si es necesario resetear todo)
 -- TRUNCATE TABLE audit_details, audit_headers, audit_custody CASCADE;
 -- TRUNCATE TABLE cart_items_template, master_carts, master_items CASCADE;
+
+-- 4. Restricciones de Redundancia para Importación Segura
+-- Permite que al importar no se dupliquen productos basándose en su descripción
+ALTER TABLE master_items 
+DROP CONSTRAINT IF EXISTS master_items_description_key;
+ALTER TABLE master_items 
+ADD CONSTRAINT master_items_description_key UNIQUE (description);
+
+-- Permite que al importar un carro no se dupliquen los ítems en su plantilla
+ALTER TABLE cart_items_template 
+ADD CONSTRAINT unique_cart_item UNIQUE (cart_id, master_item_id);

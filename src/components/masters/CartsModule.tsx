@@ -276,7 +276,7 @@ export const CartsModule: React.FC = () => {
                             }], { onConflict: 'description' }).select('id').single();
 
                             if (item) {
-                                await supabase.from('cart_items_template').insert([{
+                                await supabase.from('cart_items_template').upsert([{
                                     cart_id: finalCartId,
                                     master_item_id: item.id,
                                     standard_quantity: qty,
@@ -284,7 +284,7 @@ export const CartsModule: React.FC = () => {
                                     lote: lot,
                                     registro_sanitario: reg,
                                     vencimiento_registro_sanitario: vig
-                                }]);
+                                }], { onConflict: 'cart_id,master_item_id' });
                                 imported++;
                             }
                         }

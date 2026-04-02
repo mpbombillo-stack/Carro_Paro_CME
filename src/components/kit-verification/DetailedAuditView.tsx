@@ -40,12 +40,12 @@ export function DetailedAuditView({ data, onUpdate, onBack }: DetailedAuditViewP
                     const initialDetails = template.map((t: any) => ({
                         id: Math.random().toString(36).substr(2, 9),
                         item_id: t.master_item_id,
-                        descripcion: t.master_items.description,
+                        descripcion: t.master_items?.description || 'Producto no encontrado',
                         cantidad_estandar: t.standard_quantity,
                         cantidad_fisica: 0,
                         lote: t.lote || '',
                         fecha_vencimiento_insumo: t.fecha_vencimiento_insumo || '',
-                        registro_sanitario: t.registro_sanitario || t.master_items.invima_registry || '',
+                        registro_sanitario: t.registro_sanitario || t.master_items?.invima_registry || '',
                         vencimiento_registro_sanitario: t.vencimiento_registro_sanitario || '',
                         estado_conformidad: false
                     }));
