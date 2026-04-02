@@ -582,8 +582,8 @@ export const CartsModule: React.FC = () => {
                                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                             {templateItems.map(item => (
                                                 <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                                    <td className="px-4 py-3 font-black text-slate-800 dark:text-white">{item.master_items.description}</td>
-                                                    <td className="px-2 py-3 font-bold text-slate-500 uppercase">{item.master_items.presentation || 'N/A'}</td>
+                                                    <td className="px-4 py-3 font-black text-slate-800 dark:text-white">{item.master_items?.description || 'Producto no encontrado'}</td>
+                                                    <td className="px-2 py-3 font-bold text-slate-500 uppercase">{item.master_items?.presentation || 'N/A'}</td>
                                                     <td className="px-2 py-3">
                                                         <input 
                                                             type="number" 
